@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   Animated,
   Platform,
   ScrollView,
@@ -23,10 +22,12 @@ const VocabularyExercise = ({ route }) => {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [showTranslation, setShowTranslation] = useState(false);
   const [completed, setCompleted] = useState([]);
+  const [showTip, setShowTip] = useState(true); // Pour afficher le conseil au premier lancement
 
   // Animation values
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(50));
+  const [tipFadeAnim] = useState(new Animated.Value(1));
 
   // Determine color based on level
   const getLevelColor = (level) => {
@@ -107,6 +108,20 @@ const VocabularyExercise = ({ route }) => {
     }
   };
 
+  const toggleTranslation = () => {
+    setShowTranslation(!showTranslation);
+  };
+
+  const dismissTip = () => {
+    Animated.timing(tipFadeAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowTip(false);
+    });
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
@@ -114,12 +129,37 @@ const VocabularyExercise = ({ route }) => {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Level badge */}
-        <View style={styles.levelBadgeContainer}>
+        {/* Level badge and exercise title */}
+        <View style={styles.headerContainer}>
           <View style={[styles.levelBadge, { backgroundColor: levelColor }]}>
             <Text style={styles.levelBadgeText}>{level}</Text>
           </View>
+          <Text style={styles.exerciseTitle}>{vocabularyData.title}</Text>
         </View>
+
+        {/* Daily tip (visible only on first load) */}
+        {showTip && (
+          <Animated.View
+            style={[styles.tipContainer, { opacity: tipFadeAnim }]}
+          >
+            <View style={styles.tipContent}>
+              <Text style={styles.tipIcon}>💡</Text>
+              <View style={styles.tipTextContainer}>
+                <Text style={styles.tipTitle}>Learning Tip</Text>
+                <Text style={styles.tipText}>
+                  For better memorization, try to visualize each word or search
+                  for images online to create mental associations.
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.tipCloseButton}
+              onPress={dismissTip}
+            >
+              <Text style={styles.tipCloseText}>✕</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
 
         {/* Progress bar */}
         <View style={styles.progressContainer}>
@@ -147,55 +187,103 @@ const VocabularyExercise = ({ route }) => {
           ]}
         >
           <View style={styles.card}>
-            <Image
-              source={{ uri: currentWord.imageUrl }}
-              style={styles.wordImage}
-              resizeMode="cover"
-            />
-
-            <View style={styles.wordContainer}>
+            {/* Main word */}
+            <View
+              style={[
+                styles.wordHeaderContainer,
+                { backgroundColor: `${levelColor}15` },
+              ]}
+            >
               <Text style={styles.word}>{currentWord.word}</Text>
+            </View>
 
+            {/* Translation toggle */}
+            <TouchableOpacity
+              style={styles.translationToggleContainer}
+              onPress={toggleTranslation}
+              activeOpacity={0.7}
+            >
               {showTranslation ? (
                 <View style={styles.translationContainer}>
                   <Text style={[styles.translation, { color: levelColor }]}>
                     {currentWord.translation}
                   </Text>
+                  <Text style={styles.toggleHint}>(Tap to hide)</Text>
                 </View>
               ) : (
-                <TouchableOpacity
+                <View
                   style={[
-                    styles.showButton,
-                    { backgroundColor: `${levelColor}15` },
+                    styles.translationPlaceholder,
+                    { borderColor: `${levelColor}30` },
                   ]}
-                  onPress={() => setShowTranslation(true)}
                 >
-                  <Text style={[styles.showButtonText, { color: levelColor }]}>
-                    Show Translation
+                  <Text
+                    style={[
+                      styles.translationPlaceholderText,
+                      { color: levelColor },
+                    ]}
+                  >
+                    Tap to reveal translation
                   </Text>
-                </TouchableOpacity>
+                </View>
               )}
+            </TouchableOpacity>
+
+            {/* Definition and example sections */}
+            <View style={styles.contentSection}>
+              <View style={styles.sectionHeader}>
+                <View
+                  style={[styles.sectionDot, { backgroundColor: levelColor }]}
+                />
+                <Text style={styles.sectionTitle}>Definition</Text>
+              </View>
+              <Text style={styles.sectionText}>{currentWord.definition}</Text>
             </View>
 
-            <View style={styles.definitionContainer}>
+            <View style={styles.contentSection}>
               <View style={styles.sectionHeader}>
                 <View
                   style={[styles.sectionDot, { backgroundColor: levelColor }]}
                 />
-                <Text style={styles.definitionTitle}>Definition</Text>
+                <Text style={styles.sectionTitle}>Example</Text>
               </View>
-              <Text style={styles.definition}>{currentWord.definition}</Text>
-
-              <View style={styles.sectionHeader}>
-                <View
-                  style={[styles.sectionDot, { backgroundColor: levelColor }]}
-                />
-                <Text style={styles.exampleTitle}>Example</Text>
-              </View>
-              <Text style={styles.example}>{currentWord.example}</Text>
+              <Text style={styles.sectionText}>
+                <Text style={styles.exampleText}>{currentWord.example}</Text>
+              </Text>
             </View>
           </View>
         </Animated.View>
+
+        {/* Card count indicators */}
+        <View style={styles.cardIndicatorContainer}>
+          {vocabularyData.words.map((_, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => {
+                setCurrentWordIndex(index);
+                setShowTranslation(false);
+                fadeAnim.setValue(0);
+                slideAnim.setValue(50);
+              }}
+            >
+              <View
+                style={[
+                  styles.cardIndicator,
+                  {
+                    backgroundColor:
+                      currentWordIndex === index
+                        ? levelColor
+                        : completed.includes(index)
+                        ? `${levelColor}50`
+                        : "#e5e7eb",
+                    width: currentWordIndex === index ? 12 : 8,
+                    height: currentWordIndex === index ? 12 : 8,
+                  },
+                ]}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
 
         {/* Navigation buttons */}
         <View style={styles.buttonsContainer}>
@@ -227,26 +315,6 @@ const VocabularyExercise = ({ route }) => {
             </Text>
           </TouchableOpacity>
         </View>
-
-        {/* Card count indicator */}
-        <View style={styles.cardIndicatorContainer}>
-          {vocabularyData.words.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.cardIndicator,
-                {
-                  backgroundColor:
-                    currentWordIndex === index
-                      ? levelColor
-                      : completed.includes(index)
-                      ? `${levelColor}50`
-                      : "#e5e7eb",
-                },
-              ]}
-            />
-          ))}
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -263,14 +331,16 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
-  levelBadgeContainer: {
+  headerContainer: {
+    flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
   },
   levelBadge: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: 15,
+    marginRight: 10,
     ...Platform.select({
       ios: {
         shadowColor: "#000",
@@ -284,9 +354,65 @@ const styles = StyleSheet.create({
     }),
   },
   levelBadgeText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "bold",
     color: "white",
+  },
+  exerciseTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  tipContainer: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    marginBottom: 20,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  tipContent: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  tipIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  tipTextContainer: {
+    flex: 1,
+  },
+  tipTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 4,
+    color: "#1f2937",
+  },
+  tipText: {
+    fontSize: 14,
+    color: "#4b5563",
+    lineHeight: 20,
+  },
+  tipCloseButton: {
+    marginLeft: 12,
+    padding: 4,
+  },
+  tipCloseText: {
+    fontSize: 16,
+    color: "#9ca3af",
   },
   progressContainer: {
     flexDirection: "row",
@@ -318,7 +444,6 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "white",
     borderRadius: 15,
-    padding: 0,
     overflow: "hidden",
     ...Platform.select({
       ios: {
@@ -332,87 +457,95 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  wordImage: {
-    width: "100%",
-    height: 200,
-    marginBottom: 0,
-  },
-  wordContainer: {
+  wordHeaderContainer: {
+    paddingVertical: 20,
+    paddingHorizontal: 20,
     alignItems: "center",
-    padding: 20,
-    paddingBottom: 15,
+    justifyContent: "center",
   },
   word: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "bold",
-    marginBottom: 15,
     color: "#1f2937",
+    textAlign: "center",
+  },
+  translationToggleContainer: {
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#f3f4f6",
+    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
   translationContainer: {
-    padding: 10,
-    width: "100%",
     alignItems: "center",
   },
   translation: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
+    marginBottom: 4,
   },
-  showButton: {
+  toggleHint: {
+    fontSize: 12,
+    color: "#9ca3af",
+    fontStyle: "italic",
+  },
+  translationPlaceholder: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 10,
+    borderWidth: 1,
+    borderRadius: 12,
+    borderStyle: "dashed",
   },
-  showButtonText: {
+  translationPlaceholderText: {
     fontWeight: "600",
-    fontSize: 16,
   },
-  definitionContainer: {
+  contentSection: {
     padding: 20,
-    paddingTop: 5,
-    borderTopWidth: 1,
-    borderTopColor: "#f3f4f6",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
   },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
-    marginTop: 15,
+    marginBottom: 12,
   },
   sectionDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    marginRight: 8,
+    marginRight: 10,
   },
-  definitionTitle: {
+  sectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#374151",
   },
-  definition: {
+  sectionText: {
     fontSize: 16,
     color: "#4b5563",
     lineHeight: 24,
   },
-  exampleTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#374151",
-  },
-  example: {
-    fontSize: 16,
-    color: "#4b5563",
+  exampleText: {
     fontStyle: "italic",
-    lineHeight: 24,
+  },
+  cardIndicatorContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    marginBottom: 20,
+  },
+  cardIndicator: {
+    borderRadius: 6,
+    margin: 4,
   },
   buttonsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 20,
   },
   navButton: {
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 12,
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
@@ -431,17 +564,6 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
-  },
-  cardIndicatorContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    flexWrap: "wrap",
-  },
-  cardIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    margin: 4,
   },
 });
 
