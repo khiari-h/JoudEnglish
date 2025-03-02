@@ -73,7 +73,6 @@ const LevelSelection = () => {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Language Levels</Text>
         <Text style={styles.headerSubtitle}>
           Choose any level to start your learning journey
         </Text>

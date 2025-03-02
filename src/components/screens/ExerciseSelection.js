@@ -114,11 +114,6 @@ const ExerciseSelection = ({ route }) => {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.heroSection}>
-        <View
-          style={[styles.levelBadgeContainer, { backgroundColor: levelColor }]}
-        >
-          <Text style={styles.levelBadgeText}>{level}</Text>
-        </View>
         <Text style={styles.heroTitle}>Choose an Exercise</Text>
         <Text style={styles.heroSubtitle}>
           Select an activity to improve your language skills

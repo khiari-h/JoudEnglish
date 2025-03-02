@@ -27,24 +27,6 @@ const Dashboard = ({ route }) => {
       total: 10,
       color: "#4361EE",
     },
-    {
-      id: "2",
-      title: "Listening Practice",
-      description: "Complete 3 exercises",
-      icon: "👂",
-      progress: 1,
-      total: 3,
-      color: "#8B5CF6",
-    },
-    {
-      id: "3",
-      title: "Speaking Skills",
-      description: "Record 2 conversation clips",
-      icon: "🎙️",
-      progress: 0,
-      total: 2,
-      color: "#10B981",
-    },
   ];
 
   const renderChallengeProgress = (challenge) => {
