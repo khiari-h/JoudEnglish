@@ -1,4 +1,3 @@
-// src/components/screens/Dashboard.js
 import React from "react";
 import {
   View,
@@ -6,385 +5,171 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  ImageBackground,
-  Dimensions,
   StatusBar,
+  Platform,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-const windowWidth = Dimensions.get("window").width;
+const { width } = Dimensions.get("window");
 
-const Dashboard = () => {
+const Dashboard = ({ route }) => {
   const navigation = useNavigation();
+  const { name, streak } = route.params;
 
-  const levels = [
-    {
-      id: "a1",
-      name: "A1",
-      title: "Beginner",
-      progress: 15,
-      status: "current",
-      color: "#4F46E5", // Indigo
-      gradient: ["#6366F1", "#4F46E5"],
-      exercises: 3,
-      icon: "🚀",
-    },
-    {
-      id: "a2",
-      name: "A2",
-      title: "Elementary",
-      progress: 0,
-      status: "locked",
-      color: "#7C3AED", // Violet
-      gradient: ["#8B5CF6", "#7C3AED"],
-      exercises: 0,
-      icon: "🔥",
-    },
-  ];
-
-  // Défis quotidiens
   const dailyChallenges = [
     {
-      title: "Complete 3 vocabulary exercises",
+      id: "1",
+      title: "Vocabulary Challenge",
+      description: "Learn 10 new words",
+      icon: "📚",
+      progress: 4,
+      total: 10,
+      color: "#4361EE",
+    },
+    {
+      id: "2",
+      title: "Listening Practice",
+      description: "Complete 3 exercises",
+      icon: "👂",
       progress: 1,
       total: 3,
-      reward: "25 XP",
+      color: "#8B5CF6",
     },
     {
-      title: "Practice speaking for 5 minutes",
+      id: "3",
+      title: "Speaking Skills",
+      description: "Record 2 conversation clips",
+      icon: "🎙️",
       progress: 0,
-      total: 1,
-      reward: "15 XP",
+      total: 2,
+      color: "#10B981",
     },
   ];
 
-  // Modules recommandés
-  const recommendedModules = [
-    {
-      title: "Basic Conversations",
-      type: "Vocabulary",
-      duration: "5 min",
-      difficulty: "Easy",
-      xp: 10,
-    },
-    {
-      title: "Present Continuous",
-      type: "Grammar",
-      duration: "7 min",
-      difficulty: "Medium",
-      xp: 15,
-    },
-  ];
+  const renderChallengeProgress = (challenge) => {
+    const progressPercentage = (challenge.progress / challenge.total) * 100;
+    return (
+      <View style={styles.progressContainer}>
+        <Text style={styles.progressText}>
+          {challenge.progress}/{challenge.total}
+        </Text>
+        <View style={styles.progressBar}>
+          <View
+            style={[
+              styles.progressFill,
+              {
+                width: `${progressPercentage}%`,
+                backgroundColor: challenge.color,
+              },
+            ]}
+          />
+        </View>
+      </View>
+    );
+  };
 
   return (
-    <>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header avec gradient */}
-        <View style={styles.heroSection}>
-          <View style={styles.heroContent}>
-            <View>
-              <View style={styles.userInfo}>
-                <View style={styles.userAvatar}>
-                  <Text style={styles.userInitial}>J</Text>
-                </View>
-                <View style={styles.userStats}>
-                  <Text style={styles.userName}>Welcome back!</Text>
-                  <View style={styles.xpContainer}>
-                    <Text style={styles.xpText}>250 XP</Text>
-                    <View style={styles.levelPill}>
-                      <Text style={styles.levelPillText}>LVL 5</Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
 
-              <View style={styles.streakContainer}>
-                <View style={styles.streakBadge}>
-                  <Text style={styles.streakIcon}>🔥</Text>
-                  <Text style={styles.streakText}>7 Day Streak</Text>
+      <ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Daily Challenges Section */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Daily Challenges</Text>
+          </View>
+
+          {dailyChallenges.map((challenge) => (
+            <TouchableOpacity
+              key={challenge.id}
+              style={[
+                styles.challengeCard,
+                { borderLeftColor: challenge.color },
+              ]}
+              onPress={() => {
+                /* Challenge navigation */
+              }}
+            >
+              <View style={styles.challengeContent}>
+                <Text style={styles.challengeIcon}>{challenge.icon}</Text>
+                <View style={styles.challengeTextContainer}>
+                  <Text style={styles.challengeTitle}>{challenge.title}</Text>
+                  <Text style={styles.challengeDescription}>
+                    {challenge.description}
+                  </Text>
                 </View>
               </View>
-            </View>
-          </View>
+              {renderChallengeProgress(challenge)}
+            </TouchableOpacity>
+          ))}
         </View>
 
-        <View style={styles.content}>
-          {/* Carte de progression */}
-          <View style={styles.progressCard}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Your English Journey</Text>
-              <TouchableOpacity
-                style={styles.viewAllButton}
-                onPress={() => navigation.navigate("LevelSelection")}
-              >
-                <Text style={styles.viewAllText}>View All</Text>
-              </TouchableOpacity>
-            </View>
-
-            {levels
-              .filter((level) => level.status === "current")
-              .map((level) => (
-                <TouchableOpacity
-                  key={level.id}
-                  style={[styles.levelCard, { backgroundColor: level.color }]}
-                  onPress={() =>
-                    navigation.navigate("ExerciseSelection", {
-                      level: level.name,
-                    })
-                  }
-                >
-                  <View style={styles.levelCardContent}>
-                    <View style={styles.levelCardTop}>
-                      <View style={styles.levelBadgeContainer}>
-                        <View style={styles.levelIconBadge}>
-                          <Text style={styles.levelIcon}>{level.icon}</Text>
-                        </View>
-                        <View>
-                          <Text style={styles.levelName}>{level.name}</Text>
-                          <Text style={styles.levelTitle}>{level.title}</Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.progressCircleContainer}>
-                        <View style={styles.progressCircle}>
-                          <Text style={styles.progressText}>
-                            {level.progress}%
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-
-                    <View style={styles.levelCardBottom}>
-                      <View style={styles.progressBarContainer}>
-                        <View style={styles.progressBarBg}>
-                          <View
-                            style={[
-                              styles.progressBarFill,
-                              { width: `${level.progress}%` },
-                            ]}
-                          />
-                        </View>
-                      </View>
-                      <TouchableOpacity
-                        style={styles.continueButton}
-                        onPress={() =>
-                          navigation.navigate("ExerciseSelection", {
-                            level: level.name,
-                          })
-                        }
-                      >
-                        <Text style={styles.continueButtonText}>Continue</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
-          </View>
-
-          {/* Défis quotidiens */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Daily Challenges</Text>
-              <TouchableOpacity>
-                <Text style={styles.refreshText}>Refresh</Text>
-              </TouchableOpacity>
-            </View>
-
-            {dailyChallenges.map((challenge, index) => (
-              <View key={index} style={styles.challengeCard}>
-                <View style={styles.challengeInfo}>
-                  <Text style={styles.challengeTitle}>{challenge.title}</Text>
-                  <View style={styles.challengeProgressContainer}>
-                    <View style={styles.challengeProgressBar}>
-                      <View
-                        style={[
-                          styles.challengeProgressFill,
-                          {
-                            width: `${
-                              (challenge.progress / challenge.total) * 100
-                            }%`,
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.challengeProgressText}>
-                      {challenge.progress}/{challenge.total}
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.challengeReward}>
-                  <Text style={styles.rewardText}>{challenge.reward}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-
-          {/* Modules recommandés */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recommended For You</Text>
-            </View>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.recommendedContainer}
+        {/* Learning Path Section */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Learning Path</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("LevelSelection")}
             >
-              {recommendedModules.map((module, index) => (
-                <TouchableOpacity key={index} style={styles.recommendedCard}>
-                  <View style={styles.recommendedTop}>
-                    <View
-                      style={[
-                        styles.moduleTypeBadge,
-                        {
-                          backgroundColor:
-                            module.type === "Vocabulary"
-                              ? "#4F46E5"
-                              : "#10B981",
-                        },
-                      ]}
-                    >
-                      <Text style={styles.moduleTypeText}>{module.type}</Text>
-                    </View>
-                    <View style={styles.xpBadge}>
-                      <Text style={styles.xpBadgeText}>+{module.xp} XP</Text>
-                    </View>
-                  </View>
-
-                  <Text style={styles.recommendedTitle}>{module.title}</Text>
-
-                  <View style={styles.moduleMeta}>
-                    <View style={styles.metaItem}>
-                      <Text style={styles.metaText}>{module.duration}</Text>
-                    </View>
-                    <View style={styles.metaDot} />
-                    <View style={styles.metaItem}>
-                      <Text style={styles.metaText}>{module.difficulty}</Text>
-                    </View>
-                  </View>
-
-                  <TouchableOpacity style={styles.startModuleButton}>
-                    <Text style={styles.startModuleText}>Start</Text>
-                  </TouchableOpacity>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+              <Text style={styles.seeAllText}>Select Levels</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Bouton principal */}
           <TouchableOpacity
-            style={styles.mainActionButton}
+            style={styles.learningPathCard}
             onPress={() => navigation.navigate("LevelSelection")}
           >
-            <Text style={styles.mainActionText}>Explore All Lessons</Text>
+            <View style={styles.learningPathContent}>
+              <View style={styles.learningPathTextContainer}>
+                <Text style={styles.learningPathTitle}>
+                  Select Your Language Level
+                </Text>
+                <Text style={styles.learningPathSubtitle}>
+                  Choose from European standard levels and start learning
+                </Text>
+              </View>
+              <View style={styles.learningPathIconContainer}>
+                <Text style={styles.learningPathIcon}>🌐</Text>
+              </View>
+            </View>
           </TouchableOpacity>
         </View>
+
+        {/* Language Tip Section */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Language Tip</Text>
+          <View style={styles.tipCard}>
+            <Text style={styles.tipIcon}>💡</Text>
+            <View style={styles.tipContent}>
+              <Text style={styles.tipTitle}>Practice Makes Perfect</Text>
+              <Text style={styles.tipDescription}>
+                Speaking out loud helps improve pronunciation and builds
+                confidence. Don't be afraid to make mistakes!
+              </Text>
+            </View>
+          </View>
+        </View>
       </ScrollView>
-    </>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#F4F4F6",
   },
-  heroSection: {
-    backgroundColor: "#4F46E5",
-    paddingTop: 50,
-    paddingBottom: 30,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-  },
-  heroContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  userInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  userAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  userInitial: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "white",
-  },
-  userStats: {
+  scrollContainer: {
     flex: 1,
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "white",
-    marginBottom: 4,
-  },
-  xpContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  xpText: {
-    fontSize: 14,
-    color: "rgba(255,255,255,0.9)",
-    marginRight: 8,
-  },
-  levelPill: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-  },
-  levelPillText: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "white",
-  },
-  streakContainer: {
     marginTop: 15,
   },
-  streakBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.15)",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
-    alignSelf: "flex-start",
-  },
-  streakIcon: {
-    fontSize: 16,
-    marginRight: 6,
-  },
-  streakText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "white",
-  },
-  content: {
-    padding: 20,
-    paddingTop: 10,
-  },
-  progressCard: {
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 20,
-    marginTop: -20,
-    shadowColor: "#4F46E5",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+  sectionContainer: {
+    paddingHorizontal: 20,
+    marginVertical: 15,
   },
   sectionHeader: {
     flexDirection: "row",
@@ -395,257 +180,146 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#111827",
+    color: "#1F2937",
   },
-  viewAllButton: {
-    padding: 4,
-  },
-  viewAllText: {
-    fontSize: 14,
-    color: "#4F46E5",
-    fontWeight: "600",
-  },
-  levelCard: {
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-  levelCardContent: {
-    padding: 16,
-  },
-  levelCardTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  levelBadgeContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  levelIconBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.25)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  levelIcon: {
-    fontSize: 18,
-  },
-  levelName: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "white",
-  },
-  levelTitle: {
-    fontSize: 14,
-    color: "rgba(255,255,255,0.8)",
-  },
-  progressCircleContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  progressCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "rgba(255,255,255,0.25)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  progressText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "white",
-  },
-  levelCardBottom: {
-    marginTop: 4,
-  },
-  progressBarContainer: {
-    marginBottom: 16,
-  },
-  progressBarBg: {
-    height: 8,
-    backgroundColor: "rgba(255,255,255,0.25)",
-    borderRadius: 4,
-    overflow: "hidden",
-  },
-  progressBarFill: {
-    height: "100%",
-    backgroundColor: "white",
-    borderRadius: 4,
-  },
-  continueButton: {
-    backgroundColor: "rgba(255,255,255,0.25)",
-    padding: 12,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  continueButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  section: {
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 20,
-    marginTop: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  refreshText: {
-    fontSize: 14,
-    color: "#4F46E5",
+  seeAllText: {
+    color: "#4361EE",
     fontWeight: "600",
   },
   challengeCard: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "white",
+    borderRadius: 15,
     padding: 15,
-    borderRadius: 12,
+    marginBottom: 15,
+    borderLeftWidth: 5,
+    ...Platform.select({
+      android: { elevation: 3 },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+    }),
+  },
+  challengeContent: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 10,
   },
-  challengeInfo: {
+  challengeIcon: {
+    fontSize: 40,
+    marginRight: 15,
+  },
+  challengeTextContainer: {
     flex: 1,
-    marginRight: 10,
   },
   challengeTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1F2937",
+    marginBottom: 5,
+  },
+  challengeDescription: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 8,
+    color: "#6B7280",
   },
-  challengeProgressContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+  progressContainer: {
+    marginTop: 5,
   },
-  challengeProgressBar: {
-    flex: 1,
+  progressText: {
+    fontSize: 12,
+    color: "#6B7280",
+    marginBottom: 5,
+    textAlign: "right",
+  },
+  progressBar: {
     height: 6,
     backgroundColor: "#E5E7EB",
     borderRadius: 3,
-    marginRight: 8,
     overflow: "hidden",
   },
-  challengeProgressFill: {
+  progressFill: {
     height: "100%",
-    backgroundColor: "#4F46E5",
     borderRadius: 3,
   },
-  challengeProgressText: {
-    fontSize: 12,
-    color: "#6B7280",
-    width: 30,
+  learningPathCard: {
+    backgroundColor: "#4361EE",
+    borderRadius: 15,
+    padding: 15,
+    ...Platform.select({
+      android: { elevation: 5 },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+      },
+    }),
   },
-  challengeReward: {
-    backgroundColor: "#EEF2FF",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
+  learningPathContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  rewardText: {
-    fontSize: 12,
+  learningPathTextContainer: {
+    flex: 1,
+    paddingRight: 15,
+  },
+  learningPathTitle: {
+    fontSize: 18,
     fontWeight: "bold",
-    color: "#4F46E5",
+    color: "white",
+    marginBottom: 5,
   },
-  recommendedContainer: {
-    paddingRight: 20,
+  learningPathSubtitle: {
+    fontSize: 14,
+    color: "rgba(255,255,255,0.8)",
   },
-  recommendedCard: {
-    width: 200,
-    backgroundColor: "#F9FAFB",
-    borderRadius: 16,
-    padding: 16,
+  learningPathIconContainer: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  learningPathIcon: {
+    fontSize: 30,
+  },
+  tipCard: {
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    ...Platform.select({
+      android: { elevation: 3 },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+    }),
+  },
+  tipIcon: {
+    fontSize: 40,
     marginRight: 15,
   },
-  recommendedTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12,
+  tipContent: {
+    flex: 1,
   },
-  moduleTypeBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  moduleTypeText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "white",
-  },
-  xpBadge: {
-    backgroundColor: "#FEF3C7",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  xpBadgeText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#D97706",
-  },
-  recommendedTitle: {
+  tipTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#111827",
-    marginBottom: 8,
+    color: "#1F2937",
+    marginBottom: 5,
   },
-  moduleMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  metaItem: {
-    marginRight: 4,
-  },
-  metaText: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  metaDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#D1D5DB",
-    marginRight: 4,
-  },
-  startModuleButton: {
-    backgroundColor: "#4F46E5",
-    padding: 10,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 4,
-  },
-  startModuleText: {
+  tipDescription: {
     fontSize: 14,
-    fontWeight: "bold",
-    color: "white",
-  },
-  mainActionButton: {
-    backgroundColor: "#4F46E5",
-    padding: 16,
-    borderRadius: 16,
-    alignItems: "center",
-    marginTop: 30,
-    marginBottom: 10,
-    shadowColor: "#4F46E5",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  mainActionText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "white",
+    color: "#6B7280",
+    lineHeight: 20,
   },
 });
 

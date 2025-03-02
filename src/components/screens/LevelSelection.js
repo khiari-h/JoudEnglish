@@ -1,4 +1,3 @@
-// src/components/screens/LevelSelection.js
 import React from "react";
 import {
   View,
@@ -6,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Platform,
   Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -20,8 +20,8 @@ const LevelSelection = () => {
       title: "Beginner",
       description: "Basic communication, simple daily phrases",
       progress: 25,
-      status: "current",
       color: "#3b82f6",
+      icon: "🔤",
     },
     {
       id: "a2",
@@ -29,8 +29,8 @@ const LevelSelection = () => {
       title: "Elementary",
       description: "Simple expressions, everyday conversations",
       progress: 0,
-      status: "locked",
       color: "#8b5cf6",
+      icon: "💬",
     },
     {
       id: "b1",
@@ -38,8 +38,8 @@ const LevelSelection = () => {
       title: "Intermediate",
       description: "Clear communication on familiar matters",
       progress: 0,
-      status: "locked",
       color: "#10b981",
+      icon: "📝",
     },
     {
       id: "b2",
@@ -47,8 +47,8 @@ const LevelSelection = () => {
       title: "Upper Intermediate",
       description: "Complex communication, technical discussions",
       progress: 0,
-      status: "locked",
       color: "#f59e0b",
+      icon: "🗣️",
     },
     {
       id: "c1",
@@ -56,8 +56,8 @@ const LevelSelection = () => {
       title: "Advanced",
       description: "Fluent expression, complicated subject matter",
       progress: 0,
-      status: "locked",
       color: "#ef4444",
+      icon: "📚",
     },
     {
       id: "c2",
@@ -65,101 +65,87 @@ const LevelSelection = () => {
       title: "Proficiency",
       description: "Near-native proficiency, mastery of complex language",
       progress: 0,
-      status: "locked",
       color: "#6366f1",
+      icon: "🎓",
     },
   ];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Choose Your Level</Text>
+        <Text style={styles.headerTitle}>Language Levels</Text>
         <Text style={styles.headerSubtitle}>
-          Select a level to start learning
+          Choose any level to start your learning journey
         </Text>
       </View>
 
       <View style={styles.levelsContainer}>
-        {levels.map((level) => (
+        {levels.map((level, index) => (
           <TouchableOpacity
             key={level.id}
             style={[
               styles.levelCard,
-              level.status === "locked" && styles.lockedCard,
+              {
+                borderLeftWidth: 5,
+                borderLeftColor: level.color,
+              },
             ]}
             onPress={() => {
-              if (level.status !== "locked") {
-                navigation.navigate("ExerciseSelection", { level: level.name });
-              }
+              navigation.navigate("ExerciseSelection", { level: level.name });
             }}
-            disabled={level.status === "locked"}
           >
-            <View style={styles.levelHeader}>
+            <View style={styles.levelContent}>
               <View
                 style={[
-                  styles.levelBadge,
-                  { backgroundColor: `${level.color}20` },
+                  styles.iconContainer,
+                  { backgroundColor: `${level.color}15` },
                 ]}
               >
-                <Text style={[styles.levelBadgeText, { color: level.color }]}>
-                  {level.name}
-                </Text>
+                <Text style={styles.levelIcon}>{level.icon}</Text>
               </View>
 
-              <View style={styles.levelTitleContainer}>
-                <Text style={styles.levelTitle}>{level.title}</Text>
-                <Text style={styles.levelDescription}>{level.description}</Text>
-              </View>
-
-              {level.status === "locked" && (
-                <View style={styles.lockIconContainer}>
-                  <Text style={styles.lockIcon}>🔒</Text>
-                </View>
-              )}
-            </View>
-
-            {level.status !== "locked" && (
-              <View style={styles.progressContainer}>
-                <View style={styles.progressBar}>
+              <View style={styles.levelInfo}>
+                <View style={styles.levelHeader}>
                   <View
                     style={[
-                      styles.progressFill,
-                      {
-                        width: `${level.progress}%`,
-                        backgroundColor: level.color,
-                      },
+                      styles.levelBadge,
+                      { backgroundColor: level.color },
                     ]}
-                  />
+                  >
+                    <Text style={styles.levelBadgeText}>{level.name}</Text>
+                  </View>
+                  <Text style={styles.levelTitle}>{level.title}</Text>
                 </View>
-                <Text style={[styles.progressText, { color: level.color }]}>
-                  {level.progress}%
-                </Text>
-              </View>
-            )}
 
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.startButton,
-                  {
-                    backgroundColor:
-                      level.status === "locked" ? "#d1d5db" : level.color,
-                  },
-                ]}
-                disabled={level.status === "locked"}
-                onPress={() => {
-                  if (level.status !== "locked") {
-                    navigation.navigate("ExerciseSelection", {
-                      level: level.name,
-                    });
-                  }
-                }}
-              >
-                <Text style={styles.startButtonText}>
-                  {level.status === "locked" ? "Locked" : "Start Learning"}
-                </Text>
-              </TouchableOpacity>
+                <Text style={styles.levelDescription}>{level.description}</Text>
+
+                {level.progress > 0 && (
+                  <View style={styles.progressContainer}>
+                    <View style={styles.progressBar}>
+                      <View
+                        style={[
+                          styles.progressFill,
+                          {
+                            width: `${level.progress}%`,
+                            backgroundColor: level.color,
+                          },
+                        ]}
+                      />
+                    </View>
+                    <Text style={styles.progressText}>{level.progress}%</Text>
+                  </View>
+                )}
+              </View>
             </View>
+
+            <TouchableOpacity
+              style={[styles.startButton, { backgroundColor: level.color }]}
+              onPress={() => {
+                navigation.navigate("ExerciseSelection", { level: level.name });
+              }}
+            >
+              <Text style={styles.startButtonText}>Start Learning</Text>
+            </TouchableOpacity>
           </TouchableOpacity>
         ))}
       </View>
@@ -170,116 +156,126 @@ const LevelSelection = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#f8f9fa",
   },
   header: {
-    padding: 20,
-    alignItems: "center",
+    paddingTop: 20,
+    paddingBottom: 25,
+    paddingHorizontal: 20,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
     color: "#1f2937",
     marginBottom: 8,
+    textAlign: "center",
   },
   headerSubtitle: {
     fontSize: 16,
     color: "#6b7280",
+    textAlign: "center",
+    lineHeight: 22,
   },
   levelsContainer: {
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 50,
   },
   levelCard: {
     backgroundColor: "white",
     borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginBottom: 20,
+    overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
-  lockedCard: {
-    opacity: 0.7,
+  levelContent: {
+    flexDirection: "row",
+    padding: 16,
+    alignItems: "center",
+  },
+  iconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  levelIcon: {
+    fontSize: 30,
+  },
+  levelInfo: {
+    flex: 1,
   },
   levelHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 8,
   },
   levelBadge: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginRight: 10,
   },
   levelBadgeText: {
-    fontSize: 18,
+    color: "white",
     fontWeight: "bold",
-  },
-  levelTitleContainer: {
-    flex: 1,
+    fontSize: 14,
   },
   levelTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#1f2937",
-    marginBottom: 4,
   },
   levelDescription: {
     fontSize: 14,
     color: "#6b7280",
-  },
-  lockIconContainer: {
-    width: 32,
-    height: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  lockIcon: {
-    fontSize: 18,
+    marginBottom: 12,
+    lineHeight: 20,
   },
   progressContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
   },
   progressBar: {
     flex: 1,
-    height: 8,
+    height: 6,
     backgroundColor: "#e5e7eb",
-    borderRadius: 4,
+    borderRadius: 3,
     marginRight: 10,
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
-    borderRadius: 4,
+    borderRadius: 3,
   },
   progressText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "bold",
-    width: 40,
+    color: "#6b7280",
+    width: 35,
     textAlign: "right",
   },
-  buttonContainer: {
-    alignItems: "center",
-  },
   startButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
-    width: "100%",
   },
   startButtonText: {
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+    letterSpacing: 0.5,
   },
 });
 
