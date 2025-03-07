@@ -5,6 +5,7 @@ import Dashboard from "../screens/Dashboard";
 import LevelSelection from "../screens/LevelSelection";
 import ExerciseSelection from "../screens/ExerciseSelection";
 import VocabularyExercise from "../screens/exercises/VocabularyExercise";
+import GrammarExercise from "../screens/exercises/GrammarExercise"; // Importer le composant GrammarExercise
 
 const Stack = createStackNavigator();
 
@@ -167,6 +168,25 @@ const AppNavigator = () => {
             headerTitle: () => (
               <CustomHeader
                 title="Vocabulary"
+                subtitle={`Level ${level}`}
+                color={levelColor}
+              />
+            ),
+            headerBackTitleVisible: false,
+          };
+        }}
+      />
+      {/* Ajout de la route pour GrammarExercise */}
+      <Stack.Screen
+        name="GrammarExercise"
+        component={GrammarExercise}
+        options={({ route }) => {
+          const { level } = route.params;
+          const levelColor = getLevelColor(level);
+          return {
+            headerTitle: () => (
+              <CustomHeader
+                title="Grammar"
                 subtitle={`Level ${level}`}
                 color={levelColor}
               />

@@ -32,6 +32,48 @@ const ExerciseSelection = ({ route }) => {
 
   const levelColor = getLevelColor();
 
+  // Fonction pour naviguer vers l'exercice approprié
+  const navigateToExercise = (exerciseId) => {
+    switch (exerciseId) {
+      case "vocabulary":
+        navigation.navigate("VocabularyExercise", { level });
+        break;
+      case "grammar":
+        navigation.navigate("GrammarExercise", { level });
+        break;
+      case "chatbot":
+        // À implémenter
+        alert(`Le module ${exerciseId} sera disponible bientôt !`);
+        break;
+      case "reading":
+        // À implémenter
+        alert(`Le module ${exerciseId} sera disponible bientôt !`);
+        break;
+      case "error_correction":
+        // À implémenter
+        alert(`Le module ${exerciseId} sera disponible bientôt !`);
+        break;
+      case "word_games":
+        // À implémenter
+        alert(`Le module ${exerciseId} sera disponible bientôt !`);
+        break;
+      case "phrases":
+        // À implémenter
+        alert(`Le module ${exerciseId} sera disponible bientôt !`);
+        break;
+      case "spelling":
+        // À implémenter
+        alert(`Le module ${exerciseId} sera disponible bientôt !`);
+        break;
+      case "quizzes":
+        // À implémenter
+        alert(`Le module ${exerciseId} sera disponible bientôt !`);
+        break;
+      default:
+        alert("Ce module n'est pas encore disponible.");
+    }
+  };
+
   // Liste complète des exercices
   const exercises = [
     {
@@ -132,13 +174,7 @@ const ExerciseSelection = ({ route }) => {
                 marginBottom: index === exercises.length - 1 ? 30 : 15,
               },
             ]}
-            onPress={() => {
-              // Navigation vers l'exercice approprié
-              if (exercise.id === "vocabulary") {
-                navigation.navigate("VocabularyExercise", { level });
-              }
-              // Ajouter d'autres navigations ici selon le type d'exercice
-            }}
+            onPress={() => navigateToExercise(exercise.id)}
           >
             <View style={styles.exerciseTopSection}>
               <View
@@ -202,12 +238,7 @@ const ExerciseSelection = ({ route }) => {
                   styles.startButton,
                   { backgroundColor: exercise.color },
                 ]}
-                onPress={() => {
-                  if (exercise.id === "vocabulary") {
-                    navigation.navigate("VocabularyExercise", { level });
-                  }
-                  // Ajouter d'autres navigations ici
-                }}
+                onPress={() => navigateToExercise(exercise.id)}
               >
                 <Text style={styles.startButtonText}>Start</Text>
               </TouchableOpacity>
