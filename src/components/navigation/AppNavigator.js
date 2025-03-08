@@ -7,6 +7,12 @@ import ExerciseSelection from "../screens/ExerciseSelection";
 import VocabularyExercise from "../screens/exercises/VocabularyExercise";
 import GrammarExercise from "../screens/exercises/GrammarExercise";
 import ChatbotWriting from "../screens/exercises/ChatbotWriting";
+import ErrorCorrectionExercise from "../screens/exercises/ErrorCorrectionExercise";
+import PhrasesExpressions from "../screens/exercises/PhrasesExpressions";
+import QuizzesChallenges from "../screens/exercises/QuizzesChallenges";
+import ReadingExercise from "../screens/exercises/ReadingExercise";
+import SpellingPractice from "../screens/exercises/SpellingPractice";
+import WordGamesExercise from "../screens/exercises/WordGamesExercise";
 
 const Stack = createStackNavigator();
 
@@ -177,7 +183,6 @@ const AppNavigator = () => {
           };
         }}
       />
-      {/* Ajout de la route pour GrammarExercise */}
       <Stack.Screen
         name="GrammarExercise"
         component={GrammarExercise}
@@ -196,7 +201,6 @@ const AppNavigator = () => {
           };
         }}
       />
-      {/* Ajout de la route pour ChatbotWriting */}
       <Stack.Screen
         name="ChatbotWriting"
         component={ChatbotWriting}
@@ -207,6 +211,121 @@ const AppNavigator = () => {
             headerTitle: () => (
               <CustomHeader
                 title="Chatbot"
+                subtitle={`Level ${level}`}
+                color={levelColor}
+              />
+            ),
+            headerBackTitleVisible: false,
+          };
+        }}
+      />
+
+      {/* Ajout des routes manquantes */}
+      <Stack.Screen
+        name="ErrorCorrectionExercise"
+        component={ErrorCorrectionExercise}
+        options={({ route }) => {
+          const { level } = route.params;
+          const levelColor = getLevelColor(level);
+          return {
+            headerTitle: () => (
+              <CustomHeader
+                title="Error Correction"
+                subtitle={`Level ${level}`}
+                color={levelColor}
+              />
+            ),
+            headerBackTitleVisible: false,
+          };
+        }}
+      />
+
+      <Stack.Screen
+        name="PhrasesExpressions"
+        component={PhrasesExpressions}
+        options={({ route }) => {
+          const { level } = route.params;
+          const levelColor = getLevelColor(level);
+          return {
+            headerTitle: () => (
+              <CustomHeader
+                title="Phrases & Expressions"
+                subtitle={`Level ${level}`}
+                color={levelColor}
+              />
+            ),
+            headerBackTitleVisible: false,
+          };
+        }}
+      />
+
+      <Stack.Screen
+        name="QuizzesChallenges"
+        component={QuizzesChallenges}
+        options={({ route }) => {
+          const { level } = route.params;
+          const levelColor = getLevelColor(level);
+          return {
+            headerTitle: () => (
+              <CustomHeader
+                title="Quizzes & Challenges"
+                subtitle={`Level ${level}`}
+                color={levelColor}
+              />
+            ),
+            headerBackTitleVisible: false,
+          };
+        }}
+      />
+
+      <Stack.Screen
+        name="ReadingExercise"
+        component={ReadingExercise}
+        options={({ route }) => {
+          const { level } = route.params;
+          const levelColor = getLevelColor(level);
+          return {
+            headerTitle: () => (
+              <CustomHeader
+                title="Reading"
+                subtitle={`Level ${level}`}
+                color={levelColor}
+              />
+            ),
+            headerBackTitleVisible: false,
+          };
+        }}
+      />
+
+      <Stack.Screen
+        name="SpellingPractice"
+        component={SpellingPractice}
+        options={({ route }) => {
+          const { level } = route.params;
+          const levelColor = getLevelColor(level);
+          return {
+            headerTitle: () => (
+              <CustomHeader
+                title="Spelling Practice"
+                subtitle={`Level ${level}`}
+                color={levelColor}
+              />
+            ),
+            headerBackTitleVisible: false,
+          };
+        }}
+      />
+
+      <Stack.Screen
+        name="WordGamesExercise"
+        component={WordGamesExercise}
+        options={({ route }) => {
+          const { level } = route.params;
+          const levelColor = getLevelColor(level);
+          return {
+            headerTitle: () => (
+              <CustomHeader
+                title="Word Games"
                 subtitle={`Level ${level}`}
                 color={levelColor}
               />

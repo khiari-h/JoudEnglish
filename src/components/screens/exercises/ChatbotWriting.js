@@ -1,5 +1,4 @@
-// src/components/screens/exercises/ChatbotWriting.js
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,27 +9,28 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
-  Animated
-} from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+  Animated,
+} from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 // Import dynamique des données en fonction du niveau
-// Ces imports seraient remplacés par les vrais fichiers de données
-import chatbotA1Data from '../../../data/exercises/chatbot/chatbotA1';
-import chatbotA2Data from '../../../data/exercises/chatbot/chatbotA2';
-import chatbotB1Data from '../../../data/exercises/chatbot/chatbotB1';
-import chatbotB2Data from '../../../data/exercises/chatbot/chatbotB2';
-import chatbotC1Data from '../../../data/exercises/chatbot/chatbotC1';
-import chatbotC2Data from '../../../data/exercises/chatbot/chatbotC2';
+import chatbotA1Data from "../../../data/exercises/chatbot/chatbotA1";
+import chatbotA2Data from "../../../data/exercises/chatbot/chatbotA2";
+import chatbotB1Data from "../../../data/exercises/chatbot/chatbotB1";
+import chatbotB2Data from "../../../data/exercises/chatbot/chatbotB2";
+import chatbotC1Data from "../../../data/exercises/chatbot/chatbotC1";
+import chatbotC2Data from "../../../data/exercises/chatbot/chatbotC2";
 
 const ChatbotWriting = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { level } = route.params || { level: 'A1' };
+  const { level } = route.params || { level: "A1" };
   const scrollViewRef = useRef();
-  const [message, setMessage] = useState('');
+  const scenarioScrollViewRef = useRef();
+  const [message, setMessage] = useState("");
   const [conversation, setConversation] = useState([]);
-  const [scenario, setScenario] = useState({});
+  const [allScenarios, setAllScenarios] = useState([]);
+  const [selectedScenarioIndex, setSelectedScenarioIndex] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
@@ -61,7 +61,7 @@ const ChatbotWriting = () => {
       B1: chatbotB1Data,
       B2: chatbotB2Data,
       C1: chatbotC1Data,
-      C2: chatbotC2Data
+      C2: chatbotC2Data,
     };
     return dataMap[level] || chatbotA1Data;
   };
@@ -69,42 +69,68 @@ const ChatbotWriting = () => {
   // Initialize with the appropriate data based on level
   useEffect(() => {
     const exerciseData = getChatbotData(level);
-    // Get the first exercise in the list
+    // Set all available scenarios
     if (exerciseData.exercises && exerciseData.exercises.length > 0) {
-      setScenario(exerciseData.exercises[0]);
+      setAllScenarios(exerciseData.exercises);
     }
   }, [level]);
 
-  // When scenario changes, start the conversation
+  // Start conversation when scenarios load or when selected scenario changes
   useEffect(() => {
-    if (scenario.steps && scenario.steps.length > 0) {
-      // Start with empty conversation
+    if (allScenarios.length > 0) {
+      startConversation();
+    }
+  }, [allScenarios, selectedScenarioIndex]);
+
+  // Handle scenario selection
+  const handleScenarioChange = (index) => {
+    if (index !== selectedScenarioIndex) {
+      // Reset conversation
       setConversation([]);
       setCurrentStep(0);
-      
-      // Add the first bot message after a delay
+      setCompletionProgress(0);
+      setSelectedScenarioIndex(index);
+    }
+  };
+
+  // Start a new conversation with the selected scenario
+  const startConversation = () => {
+    if (allScenarios.length === 0 || !allScenarios[selectedScenarioIndex])
+      return;
+
+    // Reset state
+    setConversation([]);
+    setCurrentStep(0);
+    setCompletionProgress(0);
+
+    // Start the conversation
+    setTimeout(() => {
+      setIsTyping(true);
+      startTypingAnimation();
+
       setTimeout(() => {
-        setIsTyping(true);
-        startTypingAnimation();
-        
-        setTimeout(() => {
+        const currentScenario = allScenarios[selectedScenarioIndex];
+        if (currentScenario.steps && currentScenario.steps.length > 0) {
           setConversation([
-            { 
-              id: 1, 
-              text: scenario.steps[0].botMessage, 
-              sender: 'bot',
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }
+            {
+              id: 1,
+              text: currentScenario.steps[0].botMessage,
+              sender: "bot",
+              timestamp: new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+            },
           ]);
-          setSuggestions(scenario.steps[0].suggestions);
+          setSuggestions(currentScenario.steps[0].suggestions);
           setIsTyping(false);
-          
+
           // Update progress
           updateProgress();
-        }, 1500);
-      }, 500);
-    }
-  }, [scenario]);
+        }
+      }, 1500);
+    }, 500);
+  };
 
   // Animation for typing indicator
   const startTypingAnimation = () => {
@@ -113,21 +139,22 @@ const ChatbotWriting = () => {
         Animated.timing(typingAnimation, {
           toValue: 1,
           duration: 500,
-          useNativeDriver: true
+          useNativeDriver: true,
         }),
         Animated.timing(typingAnimation, {
           toValue: 0,
           duration: 500,
-          useNativeDriver: true
-        })
+          useNativeDriver: true,
+        }),
       ])
     ).start();
   };
 
   // Update progress based on current step
   const updateProgress = () => {
-    if (scenario.steps) {
-      const progress = (currentStep / scenario.steps.length) * 100;
+    const currentScenario = allScenarios[selectedScenarioIndex];
+    if (currentScenario && currentScenario.steps) {
+      const progress = (currentStep / currentScenario.steps.length) * 100;
       setCompletionProgress(progress);
     }
   };
@@ -141,43 +168,62 @@ const ChatbotWriting = () => {
     }
   }, [conversation, isTyping]);
 
+  // When selected scenario changes, scroll to center it
+  useEffect(() => {
+    if (scenarioScrollViewRef.current && allScenarios.length > 0) {
+      scenarioScrollViewRef.current.scrollTo({
+        x: selectedScenarioIndex * 110, // Approximate width of each button
+        animated: true,
+      });
+    }
+  }, [selectedScenarioIndex]);
+
   const handleSendMessage = () => {
-    if (message.trim() === '') return;
-    
+    if (message.trim() === "") return;
+
+    const currentScenario = allScenarios[selectedScenarioIndex];
+    if (!currentScenario || !currentScenario.steps) return;
+
     // Add user message to conversation
     const newMessage = {
       id: conversation.length + 1,
       text: message,
-      sender: 'user',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      sender: "user",
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
-    
+
     setConversation([...conversation, newMessage]);
-    setMessage('');
+    setMessage("");
     setSuggestions([]);
-    
+
     // Check if we have more steps in the scenario
-    if (currentStep < scenario.steps.length - 1) {
+    if (currentStep < currentScenario.steps.length - 1) {
       const nextStep = currentStep + 1;
       setCurrentStep(nextStep);
-      
+
       // Simulate bot typing
       setIsTyping(true);
       startTypingAnimation();
-      
+
       // After a delay, send the bot response
       setTimeout(() => {
         const botResponse = {
           id: conversation.length + 2,
-          text: scenario.steps[nextStep].botMessage,
-          sender: 'bot',
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          text: currentScenario.steps[nextStep].botMessage,
+          sender: "bot",
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         };
-        
-        setConversation(prev => [...prev, botResponse]);
-        setSuggestions(scenario.steps[nextStep].suggestions);
+
+        setConversation((prev) => [...prev, botResponse]);
+        setSuggestions(currentScenario.steps[nextStep].suggestions);
         setIsTyping(false);
-        
+
         // Update progress
         updateProgress();
       }, 1500);
@@ -186,12 +232,22 @@ const ChatbotWriting = () => {
       setTimeout(() => {
         // Complete progress
         setCompletionProgress(100);
-        
+
         // Show completion message
         alert("Conversation completed successfully!");
-        
-        // Navigate back
-        navigation.goBack();
+
+        // Optionally move to next scenario
+        if (selectedScenarioIndex < allScenarios.length - 1) {
+          if (confirm("Do you want to try the next conversation scenario?")) {
+            setSelectedScenarioIndex(selectedScenarioIndex + 1);
+          } else {
+            // Reset current scenario
+            startConversation();
+          }
+        } else {
+          // Reset last scenario
+          startConversation();
+        }
       }, 1000);
     }
   };
@@ -206,29 +262,33 @@ const ChatbotWriting = () => {
 
   // Render a message bubble
   const renderMessage = (item) => {
-    const isBotMessage = item.sender === 'bot';
-    
+    const isBotMessage = item.sender === "bot";
+
     return (
-      <View 
+      <View
         key={item.id}
         style={[
           styles.messageBubble,
           isBotMessage ? styles.botBubble : styles.userBubble,
-          isBotMessage ? { backgroundColor: `${levelColor}15` } : { backgroundColor: levelColor }
+          isBotMessage
+            ? { backgroundColor: `${levelColor}15` }
+            : { backgroundColor: levelColor },
         ]}
       >
-        <Text 
+        <Text
           style={[
             styles.messageText,
-            isBotMessage ? { color: '#1f2937' } : { color: 'white' }
+            isBotMessage ? { color: "#1f2937" } : { color: "white" },
           ]}
         >
           {item.text}
         </Text>
-        <Text 
+        <Text
           style={[
             styles.messageTime,
-            isBotMessage ? { color: '#6b7280' } : { color: 'rgba(255,255,255,0.7)' }
+            isBotMessage
+              ? { color: "#6b7280" }
+              : { color: "rgba(255,255,255,0.7)" },
           ]}
         >
           {item.timestamp}
@@ -240,15 +300,32 @@ const ChatbotWriting = () => {
   // Render typing indicator
   const renderTypingIndicator = () => {
     return (
-      <View style={[styles.messageBubble, styles.botBubble, { backgroundColor: `${levelColor}15`, paddingVertical: 12 }]}>
+      <View
+        style={[
+          styles.messageBubble,
+          styles.botBubble,
+          { backgroundColor: `${levelColor}15`, paddingVertical: 12 },
+        ]}
+      >
         <View style={styles.typingContainer}>
-          <Animated.View style={[styles.typingDot, { opacity: typingAnimation }]} />
-          <Animated.View style={[styles.typingDot, { opacity: typingAnimation, marginHorizontal: 4 }]} />
-          <Animated.View style={[styles.typingDot, { opacity: typingAnimation }]} />
+          <Animated.View
+            style={[styles.typingDot, { opacity: typingAnimation }]}
+          />
+          <Animated.View
+            style={[
+              styles.typingDot,
+              { opacity: typingAnimation, marginHorizontal: 4 },
+            ]}
+          />
+          <Animated.View
+            style={[styles.typingDot, { opacity: typingAnimation }]}
+          />
         </View>
       </View>
     );
   };
+
+  const currentScenario = allScenarios[selectedScenarioIndex];
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -263,56 +340,105 @@ const ChatbotWriting = () => {
         <View style={[styles.levelBadge, { backgroundColor: levelColor }]}>
           <Text style={styles.levelBadgeText}>{level}</Text>
         </View>
-        <Text style={styles.exerciseTitle}>{scenario.title || 'Chatbot Exercise'}</Text>
+        <Text style={styles.exerciseTitle}>Chatbot Writing</Text>
       </View>
-      
+
+      {/* Scenario selector (always visible) */}
+      <View style={styles.categorySelector}>
+        <Text style={styles.categoryLabel}>Scenarios:</Text>
+        <ScrollView
+          ref={scenarioScrollViewRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoriesScrollView}
+          contentContainerStyle={styles.categoriesContainer}
+        >
+          {allScenarios.map((scenarioItem, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.categoryButton,
+                selectedScenarioIndex === index && [
+                  styles.selectedCategoryButton,
+                  { borderColor: levelColor },
+                ],
+              ]}
+              onPress={() => handleScenarioChange(index)}
+            >
+              <Text
+                style={[
+                  styles.categoryButtonText,
+                  selectedScenarioIndex === index && { color: levelColor },
+                ]}
+              >
+                {scenarioItem.title}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
       {/* Progress bar */}
-      <View style={styles.progressContainer}>
-        <View style={styles.progressBar}>
-          <View
-            style={[
-              styles.progressFill,
-              { width: `${completionProgress}%`, backgroundColor: levelColor },
-            ]}
-          />
-        </View>
-        <Text style={styles.progressText}>
-          {currentStep + 1}/{scenario.steps ? scenario.steps.length : '-'}
-        </Text>
-      </View>
-      
-      {/* Scenario description */}
-      <View style={styles.descriptionContainer}>
-        <Text style={styles.descriptionText}>
-          {scenario.description || 'Practice your writing skills in this conversation.'}
-        </Text>
-        <TouchableOpacity style={styles.helpButton} onPress={toggleHelp}>
-          <Text style={[styles.helpButtonText, { color: levelColor }]}>
-            {showHelp ? 'Hide Help' : 'Show Help'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-      
-      {/* Help section */}
-      {showHelp && currentStep < (scenario.steps ? scenario.steps.length : 0) && (
-        <View style={[styles.helpContainer, { borderColor: `${levelColor}30` }]}>
-          <Text style={styles.helpTitle}>Hint:</Text>
-          <Text style={styles.helpText}>
-            {scenario.steps && scenario.steps[currentStep] 
-              ? scenario.steps[currentStep].help 
-              : 'No hint available.'}
+      {currentScenario && (
+        <View style={styles.progressContainer}>
+          <View style={styles.progressBar}>
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  width: `${completionProgress}%`,
+                  backgroundColor: levelColor,
+                },
+              ]}
+            />
+          </View>
+          <Text style={styles.progressText}>
+            {currentStep + 1}/
+            {currentScenario.steps ? currentScenario.steps.length : "-"}
           </Text>
         </View>
       )}
-      
+
+      {/* Scenario description */}
+      {currentScenario && (
+        <View style={styles.descriptionContainer}>
+          <Text style={styles.descriptionText}>
+            {currentScenario.description ||
+              "Practice your writing skills in this conversation."}
+          </Text>
+          <TouchableOpacity style={styles.helpButton} onPress={toggleHelp}>
+            <Text style={[styles.helpButtonText, { color: levelColor }]}>
+              {showHelp ? "Hide Help" : "Show Help"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Help section */}
+      {showHelp &&
+        currentScenario &&
+        currentStep <
+          (currentScenario.steps ? currentScenario.steps.length : 0) && (
+          <View
+            style={[styles.helpContainer, { borderColor: `${levelColor}30` }]}
+          >
+            <Text style={styles.helpTitle}>Hint:</Text>
+            <Text style={styles.helpText}>
+              {currentScenario.steps && currentScenario.steps[currentStep]
+                ? currentScenario.steps[currentStep].help
+                : "No hint available."}
+            </Text>
+          </View>
+        )}
+
       {/* Chat container */}
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={styles.chatContainer}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
         {/* Messages */}
-        <ScrollView 
+        <ScrollView
           ref={scrollViewRef}
           style={styles.messagesContainer}
           contentContainerStyle={styles.messagesContent}
@@ -321,10 +447,10 @@ const ChatbotWriting = () => {
           {conversation.map(renderMessage)}
           {isTyping && renderTypingIndicator()}
         </ScrollView>
-        
+
         {/* Suggestions */}
         {suggestions.length > 0 && (
-          <ScrollView 
+          <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.suggestionsContainer}
@@ -336,12 +462,14 @@ const ChatbotWriting = () => {
                 style={[styles.suggestionBubble, { borderColor: levelColor }]}
                 onPress={() => handleSuggestionPress(suggestion)}
               >
-                <Text style={[styles.suggestionText, { color: levelColor }]}>{suggestion}</Text>
+                <Text style={[styles.suggestionText, { color: levelColor }]}>
+                  {suggestion}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         )}
-        
+
         {/* Input area */}
         <View style={styles.inputContainer}>
           <TextInput
@@ -352,13 +480,15 @@ const ChatbotWriting = () => {
             placeholderTextColor="#9ca3af"
             multiline
           />
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
-              styles.sendButton, 
-              message.trim() === '' ? styles.disabledButton : { backgroundColor: levelColor }
+              styles.sendButton,
+              message.trim() === ""
+                ? styles.disabledButton
+                : { backgroundColor: levelColor },
             ]}
             onPress={handleSendMessage}
-            disabled={message.trim() === ''}
+            disabled={message.trim() === ""}
           >
             <Text style={styles.sendButtonText}>↑</Text>
           </TouchableOpacity>
@@ -371,29 +501,29 @@ const ChatbotWriting = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
   },
   headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: "#f1f5f9",
   },
   backButton: {
     marginRight: 15,
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#f1f5f9',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#f1f5f9",
+    alignItems: "center",
+    justifyContent: "center",
   },
   backButtonText: {
     fontSize: 20,
-    color: '#475569',
+    color: "#475569",
   },
   levelBadge: {
     paddingHorizontal: 12,
@@ -403,53 +533,89 @@ const styles = StyleSheet.create({
   },
   levelBadgeText: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: 'white',
+    fontWeight: "bold",
+    color: "white",
   },
   exerciseTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#334155',
+    fontWeight: "600",
+    color: "#334155",
+  },
+  // Category selector styles copied from VocabularyExercise
+  categorySelector: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+    backgroundColor: "white",
+  },
+  categoryLabel: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 10,
+  },
+  categoriesScrollView: {
+    flexGrow: 0,
+  },
+  categoriesContainer: {
+    paddingRight: 20,
+  },
+  categoryButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    marginRight: 8,
+    backgroundColor: "white",
+  },
+  selectedCategoryButton: {
+    borderWidth: 2,
+  },
+  categoryButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#64748b",
   },
   progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: "#f1f5f9",
   },
   progressBar: {
     flex: 1,
     height: 6,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: "#e2e8f0",
     borderRadius: 3,
     marginRight: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 3,
   },
   progressText: {
     fontSize: 14,
-    color: '#64748b',
-    fontWeight: '500',
+    color: "#64748b",
+    fontWeight: "500",
   },
   descriptionContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
-    backgroundColor: '#f8fafc',
+    backgroundColor: "#f8fafc",
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: "#f1f5f9",
   },
   descriptionText: {
     flex: 1,
     fontSize: 14,
-    color: '#64748b',
+    color: "#64748b",
     marginRight: 10,
   },
   helpButton: {
@@ -457,30 +623,30 @@ const styles = StyleSheet.create({
   },
   helpButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   helpContainer: {
     margin: 16,
     padding: 16,
-    backgroundColor: '#f8fafc',
+    backgroundColor: "#f8fafc",
     borderRadius: 12,
     borderWidth: 1,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
   },
   helpTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#334155',
+    fontWeight: "bold",
+    color: "#334155",
     marginBottom: 8,
   },
   helpText: {
     fontSize: 14,
-    color: '#64748b',
+    color: "#64748b",
     lineHeight: 20,
   },
   chatContainer: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   messagesContainer: {
     flex: 1,
@@ -490,17 +656,17 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   messageBubble: {
-    maxWidth: '80%',
+    maxWidth: "80%",
     padding: 12,
     borderRadius: 20,
     marginBottom: 12,
   },
   botBubble: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     borderBottomLeftRadius: 4,
   },
   userBubble: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     borderBottomRightRadius: 4,
   },
   messageText: {
@@ -509,76 +675,76 @@ const styles = StyleSheet.create({
   },
   messageTime: {
     fontSize: 10,
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginTop: 4,
   },
   typingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 4,
   },
   typingDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#64748b',
+    backgroundColor: "#64748b",
   },
   suggestionsContainer: {
     maxHeight: 60,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    borderTopColor: "#f1f5f9",
   },
   suggestionsContent: {
     padding: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   suggestionBubble: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     marginHorizontal: 6,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderWidth: 1,
   },
   suggestionText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-    backgroundColor: 'white',
+    borderTopColor: "#f1f5f9",
+    backgroundColor: "white",
   },
   textInput: {
     flex: 1,
     minHeight: 40,
     maxHeight: 100,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: "#f1f5f9",
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 16,
-    color: '#1f2937',
+    color: "#1f2937",
   },
   sendButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 10,
   },
   disabledButton: {
-    backgroundColor: '#e2e8f0',
+    backgroundColor: "#e2e8f0",
   },
   sendButtonText: {
     fontSize: 20,
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
   },
 });
 

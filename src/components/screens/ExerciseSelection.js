@@ -42,34 +42,28 @@ const ExerciseSelection = ({ route }) => {
         navigation.navigate("GrammarExercise", { level });
         break;
       case "chatbot":
-        // À implémenter
-        alert(`Le module ${exerciseId} sera disponible bientôt !`);
+        navigation.navigate("ChatbotWriting", { level });
         break;
       case "reading":
-        // À implémenter
-        alert(`Le module ${exerciseId} sera disponible bientôt !`);
+        navigation.navigate("ReadingExercise", { level });
         break;
       case "error_correction":
-        // À implémenter
-        alert(`Le module ${exerciseId} sera disponible bientôt !`);
+        navigation.navigate("ErrorCorrectionExercise", { level });
         break;
       case "word_games":
-        // À implémenter
-        alert(`Le module ${exerciseId} sera disponible bientôt !`);
+        navigation.navigate("WordGamesExercise", { level });
         break;
       case "phrases":
-        // À implémenter
-        alert(`Le module ${exerciseId} sera disponible bientôt !`);
+        navigation.navigate("PhrasesExpressions", { level });
         break;
       case "spelling":
-        // À implémenter
-        alert(`Le module ${exerciseId} sera disponible bientôt !`);
+        navigation.navigate("SpellingPractice", { level });
         break;
       case "quizzes":
-        // À implémenter
-        alert(`Le module ${exerciseId} sera disponible bientôt !`);
+        navigation.navigate("QuizzesChallenges", { level });
         break;
       default:
+        // Fallback au cas où l'ID ne correspond à aucun exercice connu
         alert("Ce module n'est pas encore disponible.");
     }
   };
