@@ -5,7 +5,8 @@ import Dashboard from "../screens/Dashboard";
 import LevelSelection from "../screens/LevelSelection";
 import ExerciseSelection from "../screens/ExerciseSelection";
 import VocabularyExercise from "../screens/exercises/VocabularyExercise";
-import GrammarExercise from "../screens/exercises/GrammarExercise"; // Importer le composant GrammarExercise
+import GrammarExercise from "../screens/exercises/GrammarExercise";
+import ChatbotWriting from "../screens/exercises/ChatbotWriting";
 
 const Stack = createStackNavigator();
 
@@ -187,6 +188,25 @@ const AppNavigator = () => {
             headerTitle: () => (
               <CustomHeader
                 title="Grammar"
+                subtitle={`Level ${level}`}
+                color={levelColor}
+              />
+            ),
+            headerBackTitleVisible: false,
+          };
+        }}
+      />
+      {/* Ajout de la route pour ChatbotWriting */}
+      <Stack.Screen
+        name="ChatbotWriting"
+        component={ChatbotWriting}
+        options={({ route }) => {
+          const { level } = route.params;
+          const levelColor = getLevelColor(level);
+          return {
+            headerTitle: () => (
+              <CustomHeader
+                title="Chatbot"
                 subtitle={`Level ${level}`}
                 color={levelColor}
               />
