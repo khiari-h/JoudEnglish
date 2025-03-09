@@ -1,5 +1,4 @@
-// src/components/screens/exercises/ReadingExercise.js
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,36 +7,36 @@ import {
   ScrollView,
   SafeAreaView,
   Animated,
-  Platform
-} from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+  Platform,
+} from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 // Import dynamique des données en fonction du niveau
-// Ces imports seraient remplacés par les vrais fichiers de données
-import readingA1Data from '../../../data/exercises/reading/readingA1';
-import readingA2Data from '../../../data/exercises/reading/readingA2';
-import readingB1Data from '../../../data/exercises/reading/readingB1';
-import readingB2Data from '../../../data/exercises/reading/readingB2';
-import readingC1Data from '../../../data/exercises/reading/readingC1';
-import readingC2Data from '../../../data/exercises/reading/readingC2';
+import readingA1Data from "../../../data/exercises/reading/readingA1";
+import readingA2Data from "../../../data/exercises/reading/readingA2";
+import readingB1Data from "../../../data/exercises/reading/readingB1";
+import readingB2Data from "../../../data/exercises/reading/readingB2";
+import readingC1Data from "../../../data/exercises/reading/readingC1";
+import readingC2Data from "../../../data/exercises/reading/readingC2";
 
 const ReadingExercise = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { level } = route.params || { level: 'A1' };
+  const { level } = route.params || { level: "A1" };
   const scrollViewRef = useRef();
-  
+  const textsScrollViewRef = useRef();
+
   // États pour gérer l'exercice
-  const [exercise, setExercise] = useState(null);
+  const [allExercises, setAllExercises] = useState([]);
+  const [selectedExerciseIndex, setSelectedExerciseIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [userAnswers, setUserAnswers] = useState([]);
-  const [showResults, setShowResults] = useState(false);
-  const [score, setScore] = useState(0);
+  const [completedQuestions, setCompletedQuestions] = useState({});
   const [showFeedback, setShowFeedback] = useState(false);
   const [textExpanded, setTextExpanded] = useState(true);
   const [highlightedWord, setHighlightedWord] = useState(null);
-  
+  const [attempts, setAttempts] = useState(0); // Ajout du compteur de tentatives
+
   // Animations
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -65,99 +64,231 @@ const ReadingExercise = () => {
       B1: readingB1Data,
       B2: readingB2Data,
       C1: readingC1Data,
-      C2: readingC2Data
+      C2: readingC2Data,
     };
     return dataMap[level] || readingA1Data;
   };
 
+  // Get current exercise
+  const currentExercise = allExercises[selectedExerciseIndex];
+
   // Initialize with the appropriate data based on level
   useEffect(() => {
     const exerciseData = getReadingData(level);
-    
-    // Get the first exercise in the list or a random one
+
     if (exerciseData.exercises && exerciseData.exercises.length > 0) {
-      setExercise(exerciseData.exercises[0]);
-      setUserAnswers(Array(exerciseData.exercises[0].questions.length).fill(null));
+      setAllExercises(exerciseData.exercises);
+
+      // Initialize completed questions for all exercises
+      const initialCompletedQuestions = {};
+
+      exerciseData.exercises.forEach((exercise, index) => {
+        initialCompletedQuestions[index] = [];
+      });
+
+      // Only initialize if not already set
+      if (Object.keys(completedQuestions).length === 0) {
+        setCompletedQuestions(initialCompletedQuestions);
+      }
     }
   }, [level]);
+
+  // Reset question state when changing the selected exercise
+  useEffect(() => {
+    if (currentExercise) {
+      setCurrentQuestionIndex(0);
+      setSelectedAnswer(null);
+      setShowFeedback(false);
+      setTextExpanded(true);
+      setAttempts(0);
+
+      // Reset animations
+      fadeAnim.setValue(1);
+      slideAnim.setValue(0);
+
+      // Scroll to top
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: true });
+      }
+    }
+  }, [selectedExerciseIndex]);
+
+  // Reset attempts when changing question
+  useEffect(() => {
+    setAttempts(0);
+  }, [currentQuestionIndex]);
+
+  // When selected exercise changes, scroll to center it
+  useEffect(() => {
+    if (textsScrollViewRef.current && allExercises.length > 0) {
+      textsScrollViewRef.current.scrollTo({
+        x: selectedExerciseIndex * 110, // Approximate width of each button
+        animated: true,
+      });
+    }
+  }, [selectedExerciseIndex]);
+
+  // Animation when question changes
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    return () => {
+      fadeAnim.setValue(0);
+      slideAnim.setValue(50);
+    };
+  }, [currentQuestionIndex, selectedExerciseIndex]);
+
+  // Handle text selection change
+  const handleTextChange = (index) => {
+    if (index !== selectedExerciseIndex) {
+      setSelectedExerciseIndex(index);
+    }
+  };
+
+  // Verify if the current question is completed
+  const isCurrentQuestionCompleted = () => {
+    return completedQuestions[selectedExerciseIndex]?.includes(
+      currentQuestionIndex
+    );
+  };
+
+  // Calculate progress for the current exercise
+  const calculateProgress = () => {
+    const completed = completedQuestions[selectedExerciseIndex]?.length || 0;
+    const total = currentExercise?.questions.length || 0;
+    return (completed / total) * 100;
+  };
 
   // Handle answer selection
   const handleSelectAnswer = (answerIndex) => {
     if (showFeedback) return;
-    
+
     setSelectedAnswer(answerIndex);
   };
 
   // Handle submission of answer
   const handleSubmitAnswer = () => {
-    if (selectedAnswer === null) return;
-    
-    const currentQuestion = exercise.questions[currentQuestionIndex];
-    const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
-    
-    // Update user answers
-    const newUserAnswers = [...userAnswers];
-    newUserAnswers[currentQuestionIndex] = selectedAnswer;
-    setUserAnswers(newUserAnswers);
-    
+    if (selectedAnswer === null || !currentExercise) return;
+
+    // Increment attempts counter
+    setAttempts(attempts + 1);
+
     // Show feedback
     setShowFeedback(true);
-    
-    // Update score if correct
-    if (isCorrect) {
-      setScore(prevScore => prevScore + 1);
-    }
-    
-    // Animate question transitioning out
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 50,
-        duration: 300,
-        useNativeDriver: true,
-      })
-    ]).start();
+  };
+
+  // Retry the current exercise
+  const retryExercise = () => {
+    setShowFeedback(false);
+    setSelectedAnswer(null);
   };
 
   // Handle navigation to next question
   const handleNextQuestion = () => {
-    const nextIndex = currentQuestionIndex + 1;
-    
-    if (nextIndex < exercise.questions.length) {
+    if (!currentExercise) return;
+
+    // Mark the current question as completed if it's not already
+    if (!isCurrentQuestionCompleted()) {
+      const updatedCompletedQuestions = { ...completedQuestions };
+      if (!updatedCompletedQuestions[selectedExerciseIndex]) {
+        updatedCompletedQuestions[selectedExerciseIndex] = [];
+      }
+      updatedCompletedQuestions[selectedExerciseIndex].push(
+        currentQuestionIndex
+      );
+      setCompletedQuestions(updatedCompletedQuestions);
+    }
+
+    setShowFeedback(false);
+    fadeAnim.setValue(0);
+    slideAnim.setValue(50);
+
+    // Move to the next question if there is one
+    if (currentQuestionIndex < currentExercise.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedAnswer(null);
+      setAttempts(0);
+    } else {
+      // All questions in this exercise are completed
+      const allCompleted = allExercises.every((exercise, index) => {
+        return (
+          (completedQuestions[index]?.length || 0) === exercise.questions.length
+        );
+      });
+
+      if (allCompleted) {
+        // All exercises are completed
+        alert("All reading exercises completed!");
+        navigation.goBack();
+      } else {
+        // Suggest moving to the next exercise
+        let nextExerciseIndex =
+          (selectedExerciseIndex + 1) % allExercises.length;
+
+        // Find the next uncompleted exercise
+        while (
+          completedQuestions[nextExerciseIndex]?.length ===
+            allExercises[nextExerciseIndex].questions.length &&
+          nextExerciseIndex !== selectedExerciseIndex
+        ) {
+          nextExerciseIndex = (nextExerciseIndex + 1) % allExercises.length;
+        }
+
+        if (nextExerciseIndex === selectedExerciseIndex) {
+          // If we come back to the current exercise, everything is completed
+          alert("All reading exercises completed!");
+          navigation.goBack();
+        } else {
+          // Ask user if they want to move to the next exercise
+          if (
+            confirm(
+              `You've completed this text! Move to ${allExercises[nextExerciseIndex].title}?`
+            )
+          ) {
+            setSelectedExerciseIndex(nextExerciseIndex);
+          } else {
+            // Reset progress for this exercise
+            const updatedCompletedQuestions = { ...completedQuestions };
+            updatedCompletedQuestions[selectedExerciseIndex] = [];
+            setCompletedQuestions(updatedCompletedQuestions);
+
+            // Reset to first question
+            setCurrentQuestionIndex(0);
+            setSelectedAnswer(null);
+            setAttempts(0);
+          }
+        }
+      }
+    }
+  };
+
+  // Handle navigation to previous question
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
       setSelectedAnswer(null);
       setShowFeedback(false);
-      setCurrentQuestionIndex(nextIndex);
-      
-      // Reset and start animations for next question
-      slideAnim.setValue(-50);
+      setAttempts(0);
       fadeAnim.setValue(0);
-      
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        })
-      ]).start();
-    } else {
-      // Show results if all questions answered
-      setShowResults(true);
+      slideAnim.setValue(50);
     }
   };
 
   // Toggle text section expansion
   const toggleTextExpansion = () => {
     setTextExpanded(!textExpanded);
-    
+
     // Scroll to top when expanding
     if (!textExpanded && scrollViewRef.current) {
       scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: true });
@@ -166,26 +297,16 @@ const ReadingExercise = () => {
 
   // Handle word highlight for vocabulary help
   const handleWordPress = (word) => {
-    if (exercise.vocabulary && exercise.vocabulary[word]) {
+    if (
+      currentExercise &&
+      currentExercise.vocabulary &&
+      currentExercise.vocabulary[word]
+    ) {
       setHighlightedWord({
         word,
-        definition: exercise.vocabulary[word]
+        definition: currentExercise.vocabulary[word],
       });
     }
-  };
-
-  // Reset the exercise
-  const handleResetExercise = () => {
-    setCurrentQuestionIndex(0);
-    setSelectedAnswer(null);
-    setUserAnswers(Array(exercise.questions.length).fill(null));
-    setShowResults(false);
-    setScore(0);
-    setShowFeedback(false);
-    
-    // Reset animations
-    fadeAnim.setValue(1);
-    slideAnim.setValue(0);
   };
 
   // Close vocabulary popup
@@ -194,7 +315,7 @@ const ReadingExercise = () => {
   };
 
   // If no exercise data is loaded yet
-  if (!exercise) {
+  if (allExercises.length === 0 || !currentExercise) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
@@ -204,87 +325,11 @@ const ReadingExercise = () => {
     );
   }
 
-  // Render results screen
-  if (showResults) {
-    const totalQuestions = exercise.questions.length;
-    const percentage = Math.round((score / totalQuestions) * 100);
-    
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        {/* Header */}
-        <View style={styles.headerContainer}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>←</Text>
-          </TouchableOpacity>
-          <View style={[styles.levelBadge, { backgroundColor: levelColor }]}>
-            <Text style={styles.levelBadgeText}>{level}</Text>
-          </View>
-          <Text style={styles.exerciseTitle}>Reading</Text>
-        </View>
-        
-        <ScrollView
-          style={styles.resultsContainer}
-          contentContainerStyle={styles.resultsContent}
-        >
-          <View style={styles.resultsCard}>
-            <Text style={styles.resultsTitle}>Exercise Complete!</Text>
-            
-            <View style={styles.scoreCircle}>
-              <Text style={styles.scorePercentage}>{percentage}%</Text>
-              <Text style={styles.scoreText}>{score}/{totalQuestions}</Text>
-            </View>
-            
-            <Text style={styles.resultsFeedback}>
-              {percentage >= 80 
-                ? "Excellent! You have a great understanding of the text."
-                : percentage >= 60
-                  ? "Good job! You understood most of the text."
-                  : "Keep practicing! Reading takes time to master."}
-            </Text>
-
-            <View style={styles.answersReview}>
-              <Text style={styles.reviewTitle}>Review Your Answers:</Text>
-              
-              {exercise.questions.map((question, index) => (
-                <View key={index} style={styles.reviewItem}>
-                  <Text style={styles.reviewQuestion}>{index + 1}. {question.text}</Text>
-                  <Text style={[
-                    styles.reviewAnswer, 
-                    userAnswers[index] === question.correctAnswer 
-                      ? styles.correctAnswer 
-                      : styles.incorrectAnswer
-                  ]}>
-                    {userAnswers[index] === question.correctAnswer 
-                      ? "Correct" 
-                      : `Incorrect - The correct answer was: ${question.options[question.correctAnswer]}`}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
-            <View style={styles.resultsButtons}>
-              <TouchableOpacity 
-                style={[styles.resultsButton, { backgroundColor: levelColor }]}
-                onPress={handleResetExercise}
-              >
-                <Text style={styles.resultsButtonText}>Try Again</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[styles.resultsButton, styles.secondaryButton]}
-                onPress={() => navigation.goBack()}
-              >
-                <Text style={[styles.resultsButtonText, { color: levelColor }]}>Exit</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
+  // Get current questions and calculate progress
+  const totalQuestions = currentExercise.questions.length;
+  const progress = calculateProgress();
+  const currentQuestion = currentExercise.questions[currentQuestionIndex];
+  const isCorrectAnswer = selectedAnswer === currentQuestion.correctAnswer;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -301,44 +346,81 @@ const ReadingExercise = () => {
         </View>
         <Text style={styles.exerciseTitle}>Reading</Text>
       </View>
-      
+
+      {/* Text selector */}
+      <View style={styles.textSelectorContainer}>
+        <Text style={styles.textSelectorLabel}>Texts:</Text>
+        <ScrollView
+          ref={textsScrollViewRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.textsScrollView}
+          contentContainerStyle={styles.textsContainer}
+        >
+          {allExercises.map((exercise, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.textButton,
+                selectedExerciseIndex === index && [
+                  styles.selectedTextButton,
+                  { borderColor: levelColor },
+                ],
+              ]}
+              onPress={() => handleTextChange(index)}
+            >
+              <Text
+                style={[
+                  styles.textButtonText,
+                  selectedExerciseIndex === index && { color: levelColor },
+                ]}
+              >
+                {exercise.title}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
       {/* Progress bar */}
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
           <View
             style={[
               styles.progressFill,
-              { 
-                width: `${((currentQuestionIndex + (showFeedback ? 1 : 0)) / exercise.questions.length) * 100}%`, 
-                backgroundColor: levelColor 
-              },
+              { width: `${progress}%`, backgroundColor: levelColor },
             ]}
           />
         </View>
         <Text style={styles.progressText}>
-          {currentQuestionIndex + 1}/{exercise.questions.length}
+          {completedQuestions[selectedExerciseIndex]?.length || 0}/
+          {totalQuestions}
         </Text>
       </View>
-      
+
       <ScrollView
         ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
       >
         {/* Text Section */}
-        <View style={[
-          styles.textContainer,
-          !textExpanded && styles.collapsedTextContainer
-        ]}>
-          <Text style={styles.textTitle}>{exercise.title}</Text>
-          
+        <View
+          style={[
+            styles.textContainer,
+            !textExpanded && styles.collapsedTextContainer,
+          ]}
+        >
+          <Text style={styles.textTitle}>{currentExercise.title}</Text>
+
           {textExpanded ? (
             <View style={styles.fullTextContainer}>
-              {exercise.text.split(' ').map((word, index) => {
+              {currentExercise.text.split(" ").map((word, index) => {
                 // Remove punctuation for checking vocabulary
-                const cleanWord = word.replace(/[.,!?;:""]/g, '');
-                const hasDefinition = exercise.vocabulary && exercise.vocabulary[cleanWord];
-                
+                const cleanWord = word.replace(/[.,!?;:""]/g, "");
+                const hasDefinition =
+                  currentExercise.vocabulary &&
+                  currentExercise.vocabulary[cleanWord];
+
                 return (
                   <TouchableOpacity
                     key={index}
@@ -346,11 +428,13 @@ const ReadingExercise = () => {
                     onPress={() => hasDefinition && handleWordPress(cleanWord)}
                     style={styles.wordContainer}
                   >
-                    <Text style={[
-                      styles.textWord,
-                      hasDefinition && styles.highlightedWord
-                    ]}>
-                      {word}{' '}
+                    <Text
+                      style={[
+                        styles.textWord,
+                        hasDefinition && styles.highlightedWord,
+                      ]}
+                    >
+                      {word}{" "}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -358,122 +442,231 @@ const ReadingExercise = () => {
             </View>
           ) : (
             <Text style={styles.collapsedText}>
-              {exercise.text.substring(0, 100)}...
+              {currentExercise.text.substring(0, 100)}...
             </Text>
           )}
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={[styles.expandButton, { borderColor: levelColor }]}
             onPress={toggleTextExpansion}
           >
             <Text style={[styles.expandButtonText, { color: levelColor }]}>
-              {textExpanded ? 'Collapse Text' : 'Expand Text'}
+              {textExpanded ? "Collapse Text" : "Expand Text"}
             </Text>
           </TouchableOpacity>
         </View>
-        
+
         {/* Question Section */}
         <Animated.View
           style={[
             styles.questionContainer,
             {
               opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
+              transform: [{ translateY: slideAnim }],
+            },
           ]}
         >
-          <Text style={styles.questionTitle}>Question {currentQuestionIndex + 1}</Text>
-          <Text style={styles.questionText}>
-            {exercise.questions[currentQuestionIndex].text}
+          <Text style={styles.questionTitle}>
+            Question {currentQuestionIndex + 1}
           </Text>
-          
+          <Text style={styles.questionText}>{currentQuestion.text}</Text>
+
           <View style={styles.optionsContainer}>
-            {exercise.questions[currentQuestionIndex].options.map((option, index) => (
+            {currentQuestion.options.map((option, index) => (
               <TouchableOpacity
                 key={index}
                 style={[
                   styles.optionButton,
                   selectedAnswer === index && styles.selectedOption,
-                  showFeedback && index === exercise.questions[currentQuestionIndex].correctAnswer && styles.correctOption,
-                  showFeedback && selectedAnswer === index && selectedAnswer !== exercise.questions[currentQuestionIndex].correctAnswer && styles.incorrectOption
+                  showFeedback &&
+                    index === currentQuestion.correctAnswer &&
+                    styles.correctOption,
+                  showFeedback &&
+                    selectedAnswer === index &&
+                    selectedAnswer !== currentQuestion.correctAnswer &&
+                    styles.incorrectOption,
                 ]}
                 onPress={() => handleSelectAnswer(index)}
                 disabled={showFeedback}
               >
-                <Text style={[
-                  styles.optionText,
-                  selectedAnswer === index && styles.selectedOptionText,
-                  showFeedback && index === exercise.questions[currentQuestionIndex].correctAnswer && styles.correctOptionText,
-                  showFeedback && selectedAnswer === index && selectedAnswer !== exercise.questions[currentQuestionIndex].correctAnswer && styles.incorrectOptionText
-                ]}>
+                <Text
+                  style={[
+                    styles.optionText,
+                    selectedAnswer === index && styles.selectedOptionText,
+                    showFeedback &&
+                      index === currentQuestion.correctAnswer &&
+                      styles.correctOptionText,
+                    showFeedback &&
+                      selectedAnswer === index &&
+                      selectedAnswer !== currentQuestion.correctAnswer &&
+                      styles.incorrectOptionText,
+                  ]}
+                >
                   {option}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-          
+
           {/* Feedback section */}
           {showFeedback && (
-            <View style={[
-              styles.feedbackContainer,
-              selectedAnswer === exercise.questions[currentQuestionIndex].correctAnswer 
-                ? styles.correctFeedback 
-                : styles.incorrectFeedback
-            ]}>
+            <View
+              style={[
+                styles.feedbackContainer,
+                isCorrectAnswer
+                  ? styles.correctFeedback
+                  : styles.incorrectFeedback,
+              ]}
+            >
               <Text style={styles.feedbackTitle}>
-                {selectedAnswer === exercise.questions[currentQuestionIndex].correctAnswer 
-                  ? 'Correct!' 
-                  : 'Incorrect!'}
+                {isCorrectAnswer ? "Correct!" : "Incorrect!"}
               </Text>
               <Text style={styles.feedbackText}>
-                {exercise.questions[currentQuestionIndex].explanation}
+                {isCorrectAnswer
+                  ? currentQuestion.explanation
+                  : attempts > 1
+                  ? `The correct answer is: ${
+                      currentQuestion.options[currentQuestion.correctAnswer]
+                    }`
+                  : "Try again!"}
               </Text>
             </View>
           )}
         </Animated.View>
+
+        {/* Question indicators */}
+        <View style={styles.questionIndicatorContainer}>
+          {currentExercise.questions.map((_, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => {
+                setCurrentQuestionIndex(index);
+                setSelectedAnswer(null);
+                setShowFeedback(false);
+                setAttempts(0);
+                fadeAnim.setValue(0);
+                slideAnim.setValue(50);
+              }}
+            >
+              <View
+                style={[
+                  styles.questionIndicator,
+                  {
+                    backgroundColor:
+                      currentQuestionIndex === index
+                        ? levelColor
+                        : completedQuestions[selectedExerciseIndex]?.includes(
+                            index
+                          )
+                        ? `${levelColor}50`
+                        : "#e5e7eb",
+                    width: currentQuestionIndex === index ? 12 : 8,
+                    height: currentQuestionIndex === index ? 12 : 8,
+                  },
+                ]}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
-      
+
       {/* Bottom action buttons */}
       <View style={styles.actionContainer}>
         {!showFeedback ? (
-          <TouchableOpacity 
+          // Bouton "Check Answer" quand l'utilisateur n'a pas encore validé sa réponse
+          <TouchableOpacity
             style={[
               styles.actionButton,
-              selectedAnswer === null ? styles.disabledButton : [styles.enabledButton, { backgroundColor: levelColor }]
+              selectedAnswer === null
+                ? styles.disabledButton
+                : { backgroundColor: levelColor },
             ]}
             onPress={handleSubmitAnswer}
             disabled={selectedAnswer === null}
           >
             <Text style={styles.actionButtonText}>Check Answer</Text>
           </TouchableOpacity>
+        ) : isCorrectAnswer ? (
+          // Boutons "Previous" et "Next Question" quand la réponse est correcte
+          <View style={styles.buttonGroup}>
+            <TouchableOpacity
+              style={[
+                styles.navButton,
+                styles.prevButton,
+                { opacity: currentQuestionIndex > 0 ? 1 : 0.5 },
+                { backgroundColor: `${levelColor}15` },
+              ]}
+              onPress={handlePreviousQuestion}
+              disabled={currentQuestionIndex === 0}
+            >
+              <Text style={[styles.navButtonText, { color: levelColor }]}>
+                Previous
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.navButton,
+                styles.nextButton,
+                { backgroundColor: levelColor },
+              ]}
+              onPress={handleNextQuestion}
+            >
+              <Text style={styles.nextButtonText}>
+                {currentQuestionIndex < currentExercise.questions.length - 1
+                  ? "Next Question"
+                  : "Complete"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         ) : (
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.enabledButton, { backgroundColor: levelColor }]}
-            onPress={handleNextQuestion}
-          >
-            <Text style={styles.actionButtonText}>
-              {currentQuestionIndex < exercise.questions.length - 1 
-                ? 'Next Question' 
-                : 'See Results'}
-            </Text>
-          </TouchableOpacity>
+          // Boutons "Try Again" et "Skip" quand la réponse est incorrecte
+          <View style={styles.buttonGroup}>
+            <TouchableOpacity
+              style={[
+                styles.navButton,
+                styles.retryButton,
+                { backgroundColor: `${levelColor}15` },
+              ]}
+              onPress={retryExercise}
+            >
+              <Text style={[styles.navButtonText, { color: levelColor }]}>
+                Try Again
+              </Text>
+            </TouchableOpacity>
+
+            {attempts > 1 && (
+              <TouchableOpacity
+                style={[
+                  styles.navButton,
+                  styles.skipButton,
+                  { backgroundColor: levelColor },
+                ]}
+                onPress={handleNextQuestion}
+              >
+                <Text style={styles.nextButtonText}>Skip</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         )}
       </View>
-      
+
       {/* Vocabulary popup */}
       {highlightedWord && (
         <View style={styles.vocabularyOverlay}>
           <View style={styles.vocabularyPopup}>
             <View style={styles.vocabularyHeader}>
               <Text style={styles.vocabularyWord}>{highlightedWord.word}</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.closeButton}
                 onPress={closeVocabularyPopup}
               >
                 <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.vocabularyDefinition}>{highlightedWord.definition}</Text>
+            <Text style={styles.vocabularyDefinition}>
+              {highlightedWord.definition}
+            </Text>
           </View>
         </View>
       )}
@@ -484,38 +677,38 @@ const ReadingExercise = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     fontSize: 18,
-    color: '#64748b',
+    color: "#64748b",
   },
   headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: "#f1f5f9",
   },
   backButton: {
     marginRight: 15,
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#f1f5f9',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#f1f5f9",
+    alignItems: "center",
+    justifyContent: "center",
   },
   backButtonText: {
     fontSize: 20,
-    color: '#475569',
+    color: "#475569",
   },
   levelBadge: {
     paddingHorizontal: 12,
@@ -525,39 +718,75 @@ const styles = StyleSheet.create({
   },
   levelBadgeText: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: 'white',
+    fontWeight: "bold",
+    color: "white",
   },
   exerciseTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#334155',
+    fontWeight: "600",
+    color: "#334155",
+  },
+  // Text selector styles
+  textSelectorContainer: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+    backgroundColor: "white",
+  },
+  textSelectorLabel: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 10,
+  },
+  textsScrollView: {
+    flexGrow: 0,
+  },
+  textsContainer: {
+    paddingRight: 20,
+  },
+  textButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    marginRight: 8,
+    backgroundColor: "white",
+  },
+  selectedTextButton: {
+    borderWidth: 2,
+  },
+  textButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#64748b",
   },
   progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: "#f1f5f9",
   },
   progressBar: {
     flex: 1,
     height: 6,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: "#e2e8f0",
     borderRadius: 3,
     marginRight: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 3,
   },
   progressText: {
     fontSize: 14,
-    color: '#64748b',
-    fontWeight: '500',
+    color: "#64748b",
+    fontWeight: "500",
   },
   scrollView: {
     flex: 1,
@@ -567,13 +796,13 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   textContainer: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     ...Platform.select({
       ios: {
-        shadowColor: '#64748b',
+        shadowColor: "#64748b",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -588,34 +817,34 @@ const styles = StyleSheet.create({
   },
   textTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1e293b',
+    fontWeight: "bold",
+    color: "#1e293b",
     marginBottom: 12,
   },
   fullTextContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
   },
   wordContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   textWord: {
     fontSize: 16,
     lineHeight: 24,
-    color: '#334155',
+    color: "#334155",
   },
   highlightedWord: {
-    color: '#3b82f6',
-    textDecorationLine: 'underline',
-    textDecorationStyle: 'dotted',
+    color: "#3b82f6",
+    textDecorationLine: "underline",
+    textDecorationStyle: "dotted",
   },
   collapsedText: {
     fontSize: 16,
     lineHeight: 24,
-    color: '#334155',
+    color: "#334155",
   },
   expandButton: {
-    alignSelf: 'center',
+    alignSelf: "center",
     marginTop: 12,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -624,16 +853,16 @@ const styles = StyleSheet.create({
   },
   expandButtonText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   questionContainer: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     ...Platform.select({
       ios: {
-        shadowColor: '#64748b',
+        shadowColor: "#64748b",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -645,54 +874,54 @@ const styles = StyleSheet.create({
   },
   questionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#64748b',
+    fontWeight: "600",
+    color: "#64748b",
     marginBottom: 8,
   },
   questionText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1e293b',
+    fontWeight: "bold",
+    color: "#1e293b",
     marginBottom: 16,
   },
   optionsContainer: {
     marginBottom: 16,
   },
   optionButton: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderWidth: 1,
-    borderColor: '#cbd5e1',
+    borderColor: "#cbd5e1",
     borderRadius: 12,
     padding: 16,
     marginBottom: 10,
   },
   selectedOption: {
-    backgroundColor: '#eff6ff',
-    borderColor: '#3b82f6',
+    backgroundColor: "#eff6ff",
+    borderColor: "#3b82f6",
   },
   correctOption: {
-    backgroundColor: '#f0fdf4',
-    borderColor: '#10b981',
+    backgroundColor: "#f0fdf4",
+    borderColor: "#10b981",
   },
   incorrectOption: {
-    backgroundColor: '#fef2f2',
-    borderColor: '#ef4444',
+    backgroundColor: "#fef2f2",
+    borderColor: "#ef4444",
   },
   optionText: {
     fontSize: 16,
-    color: '#334155',
+    color: "#334155",
   },
   selectedOptionText: {
-    color: '#3b82f6',
-    fontWeight: '500',
+    color: "#3b82f6",
+    fontWeight: "500",
   },
   correctOptionText: {
-    color: '#10b981',
-    fontWeight: '500',
+    color: "#10b981",
+    fontWeight: "500",
   },
   incorrectOptionText: {
-    color: '#ef4444',
-    fontWeight: '500',
+    color: "#ef4444",
+    fontWeight: "500",
   },
   feedbackContainer: {
     borderRadius: 12,
@@ -700,62 +929,101 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   correctFeedback: {
-    backgroundColor: '#f0fdf4',
+    backgroundColor: "#f0fdf4",
     borderLeftWidth: 4,
-    borderLeftColor: '#10b981',
+    borderLeftColor: "#10b981",
   },
   incorrectFeedback: {
-    backgroundColor: '#fef2f2',
+    backgroundColor: "#fef2f2",
     borderLeftWidth: 4,
-    borderLeftColor: '#ef4444',
+    borderLeftColor: "#ef4444",
   },
   feedbackTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
   },
   feedbackText: {
     fontSize: 14,
-    color: '#475569',
+    color: "#475569",
     lineHeight: 20,
+  },
+  questionIndicatorContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    marginBottom: 20,
+  },
+  questionIndicator: {
+    borderRadius: 6,
+    margin: 4,
   },
   actionContainer: {
     padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    borderTopColor: "#f1f5f9",
   },
   actionButton: {
     borderRadius: 12,
     paddingVertical: 14,
-    alignItems: 'center',
+    alignItems: "center",
   },
   disabledButton: {
-    backgroundColor: '#e2e8f0',
-  },
-  enabledButton: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: "#e2e8f0",
   },
   actionButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
+    fontWeight: "bold",
+    color: "white",
+  },
+  buttonGroup: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  navButton: {
+    padding: 15,
+    borderRadius: 12,
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  prevButton: {
+    marginRight: 10,
+  },
+  nextButton: {
+    marginLeft: 10,
+  },
+  retryButton: {
+    marginRight: 10,
+  },
+  skipButton: {
+    marginLeft: 10,
+  },
+  navButtonText: {
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  nextButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   vocabularyOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 100,
   },
   vocabularyPopup: {
-    width: '80%',
-    backgroundColor: 'white',
+    width: "80%",
+    backgroundColor: "white",
     borderRadius: 16,
     padding: 20,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.25,
         shadowRadius: 8,
@@ -766,140 +1034,32 @@ const styles = StyleSheet.create({
     }),
   },
   vocabularyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   vocabularyWord: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1e293b',
+    fontWeight: "bold",
+    color: "#1e293b",
   },
   closeButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#f1f5f9',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#f1f5f9",
+    alignItems: "center",
+    justifyContent: "center",
   },
   closeButtonText: {
     fontSize: 16,
-    color: '#64748b',
+    color: "#64748b",
   },
   vocabularyDefinition: {
     fontSize: 16,
-    color: '#475569',
+    color: "#475569",
     lineHeight: 22,
-  },
-  // Results styles
-  resultsContainer: {
-    flex: 1,
-  },
-  resultsContent: {
-    padding: 20,
-  },
-  resultsCard: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#64748b',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  resultsTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1e293b',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  scoreCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#f1f5f9',
-    alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  scorePercentage: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1e293b',
-  },
-  scoreText: {
-    fontSize: 16,
-    color: '#64748b',
-  },
-  resultsFeedback: {
-    fontSize: 16,
-    color: '#475569',
-    textAlign: 'center',
-    marginBottom: 24,
-    paddingHorizontal: 10,
-  },
-  answersReview: {
-    marginBottom: 24,
-  },
-  reviewTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1e293b',
-    marginBottom: 12,
-  },
-  reviewItem: {
-    marginBottom: 12,
-  },
-  reviewQuestion: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#334155',
-    marginBottom: 4,
-  },
-  reviewAnswer: {
-    fontSize: 14,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-  },
-  correctAnswer: {
-    backgroundColor: '#f0fdf4',
-    color: '#10b981',
-  },
-  incorrectAnswer: {
-    backgroundColor: '#fef2f2',
-    color: '#ef4444',
-  },
-  resultsButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  resultsButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginHorizontal: 6,
-  },
-  secondaryButton: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-  },
-  resultsButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
   },
 });
 
