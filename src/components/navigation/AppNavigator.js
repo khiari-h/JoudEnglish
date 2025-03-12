@@ -46,32 +46,6 @@ const CustomHeader = ({ title, subtitle, color = "#4361EE" }) => {
   );
 };
 
-// Header spécifique pour Dashboard avec infos utilisateur
-const CustomDashboardHeader = ({ scene }) => {
-  const { options } = scene.descriptor;
-  const { name, streak } = options.headerParams || {};
-
-  return (
-    <View style={styles.headerContainer}>
-      <View style={styles.titleContainer}>
-        <View style={styles.headerBg}>
-          <Text style={styles.headerTitle}>Dashboard</Text>
-        </View>
-        <View style={styles.titleDivider} />
-      </View>
-      <View style={styles.userInfoContainer}>
-        <View style={styles.userDetailsContainer}>
-          <Text style={styles.userName}>{name}</Text>
-          <View style={styles.streakContainer}>
-            <Text style={styles.streakIcon}>🔥</Text>
-            <Text style={styles.streakText}>{streak} days</Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-};
-
 // Fonction pour obtenir la couleur selon le niveau
 const getLevelColor = (level) => {
   const colors = {
@@ -97,7 +71,7 @@ const AppNavigator = () => {
       screenOptions={{
         headerStyle: {
           backgroundColor: "#FFFFFF",
-          height: 130,
+          height: 80, // Réduit pour un header plus compact
           borderBottomLeftRadius: 0,
           borderBottomRightRadius: 0,
           elevation: 0,
@@ -126,18 +100,7 @@ const AppNavigator = () => {
         component={Dashboard}
         initialParams={userProfile}
         options={{
-          headerTitle: (props) => (
-            <CustomDashboardHeader
-              {...props}
-              scene={{
-                descriptor: {
-                  options: {
-                    headerParams: userProfile,
-                  },
-                },
-              }}
-            />
-          ),
+          headerTitle: () => <CustomHeader title="Dashboard" />,
           headerLeft: () => null,
         }}
       />
@@ -391,34 +354,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#4B5563",
-  },
-  userInfoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginLeft: 30,
-  },
-  userDetailsContainer: {
-    flexDirection: "column",
-    alignItems: "flex-end",
-  },
-  userName: {
-    fontSize: 16,
-    color: "#1F2937",
-    fontWeight: "600",
-    marginBottom: 2,
-  },
-  streakContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  streakIcon: {
-    fontSize: 14,
-    marginRight: 4,
-  },
-  streakText: {
-    color: "#4B5563",
-    fontSize: 13,
-    fontWeight: "500",
   },
 });
 
