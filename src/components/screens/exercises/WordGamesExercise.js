@@ -696,6 +696,45 @@ const WordGamesExercise = () => {
     );
   }
 
+  // Nouvelle vérification pour un tableau de jeux vide
+  if (games.length === 0) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backButtonText}>←</Text>
+          </TouchableOpacity>
+          <View
+            style={[
+              styles.levelBadge,
+              { backgroundColor: getLevelColor(level) },
+            ]}
+          >
+            <Text style={styles.levelBadgeText}>{level}</Text>
+          </View>
+          <Text style={styles.headerTitle}>Word Games</Text>
+        </View>
+        <View style={styles.emptyGamesContainer}>
+          <Text style={styles.emptyGamesText}>
+            Aucun jeu de mots disponible pour le niveau {level}.
+          </Text>
+          <TouchableOpacity
+            style={[
+              styles.emptyGamesButton,
+              { backgroundColor: getLevelColor(level) },
+            ]}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.emptyGamesButtonText}>Retour</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   // Affiche les résultats finaux
   if (showResults) {
     const totalScore = gameResults.reduce(
@@ -1407,6 +1446,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   resultsButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "white",
+  },
+  emptyGamesContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "#f8fafc",
+  },
+  emptyGamesText: {
+    fontSize: 18,
+    color: "#475569",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  emptyGamesButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  emptyGamesButtonText: {
     fontSize: 16,
     fontWeight: "bold",
     color: "white",

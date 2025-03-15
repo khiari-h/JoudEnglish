@@ -9,170 +9,38 @@ import {
   SafeAreaView,
   Platform,
   Animated,
-  Image,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-// Vous n'êtes pas sur Expo, donc nous utilisons un simulateur de TTS pour CodeSandbox
-// Cette simulation permettra au composant de fonctionner sans erreur
-// Dans un vrai projet, vous utiliseriez : import Tts from 'react-native-tts';
 
-// Simulateur de TTS pour CodeSandbox
-const TtsSimulator = {
-  speak: (text, options = {}) => {
-    console.log(`TTS speaking: "${text}"`);
-    // Simule la fin de la parole après 1,5 secondes
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (options.onDone) options.onDone();
-        resolve();
-      }, 1500);
-    });
-  },
-  setDefaultLanguage: (lang) => console.log(`TTS language set to: ${lang}`),
-  setDefaultRate: (rate) => console.log(`TTS rate set to: ${rate}`),
-};
-
-// Option temporaire : définir des données internes si les imports ne fonctionnent pas
-const internalSpellingData = {
-  A1: {
-    title: "A1 Spelling Exercises",
-    description: "Basic spelling exercises for A1 level",
-    exercises: [
-      {
-        type: "dictation",
-        instruction: "Listen and spell the word",
-        correctSpelling: "hello",
-        hasHint: true,
-        explanation: "This is a common greeting.",
-      },
-      {
-        type: "dictation",
-        instruction: "Listen and spell the word",
-        correctSpelling: "friend",
-        hasHint: true,
-        explanation: "'Friend' is someone you like and trust.",
-      },
-      {
-        type: "correction",
-        instruction: "Correct the spelling mistake",
-        wordToCorrect: "hapy",
-        correctSpelling: "happy",
-        errorCount: 1,
-        hasHint: true,
-        explanation: "The word 'happy' has a double 'p'.",
-      },
-      {
-        type: "correction",
-        instruction: "Correct the spelling mistake",
-        wordToCorrect: "hous",
-        correctSpelling: "house",
-        errorCount: 1,
-        hasHint: true,
-        explanation: "The word 'house' ends with an 'e'.",
-      },
-      {
-        type: "dictation",
-        instruction: "Listen and spell the word",
-        correctSpelling: "school",
-        hasHint: true,
-        explanation: "A place where you learn.",
-      },
-    ],
-  },
-  A2: {
-    title: "A2 Spelling Exercises",
-    description: "Intermediate spelling exercises for A2 level",
-    exercises: [
-      {
-        type: "dictation",
-        instruction: "Listen and spell the word",
-        correctSpelling: "beautiful",
-        hasHint: true,
-        explanation: "A word that describes something pleasing to look at.",
-      },
-      {
-        type: "correction",
-        instruction: "Correct the spelling mistake",
-        wordToCorrect: "tommorow",
-        correctSpelling: "tomorrow",
-        errorCount: 1,
-        hasHint: true,
-        explanation: "The word 'tomorrow' has one 'm' and two 'r's.",
-      },
-    ],
-  },
-  B1: {
-    title: "B1 Spelling Exercises",
-    description: "Upper intermediate spelling exercises",
-    exercises: [
-      {
-        type: "dictation",
-        instruction: "Listen and spell the word",
-        correctSpelling: "necessary",
-        hasHint: true,
-        explanation: "Remember: one collar (c), two sleeves (s).",
-      },
-      {
-        type: "dictation",
-        instruction: "Listen and spell the word",
-        correctSpelling: "definitely",
-        hasHint: true,
-        explanation: "This word is often misspelled as 'definately'.",
-      },
-    ],
-  },
-};
-
-// Essayez d'importer les données d'exercices, mais utilisez les données internes comme fallback
-let spellingA1Data,
-  spellingA2Data,
-  spellingB1Data,
-  spellingB2Data,
-  spellingC1Data,
-  spellingC2Data;
+// Importation des données pour les règles d'orthographe
+let spellingRulesA1Data;
 
 try {
-  // Ces imports peuvent échouer si les fichiers n'existent pas
-  spellingA1Data =
-    require("../../../data/exercises/spelling/spellingA1").default;
-  spellingA2Data =
-    require("../../../data/exercises/spelling/spellingA2").default;
-  spellingB1Data =
-    require("../../../data/exercises/spelling/spellingB1").default;
-  spellingB2Data =
-    require("../../../data/exercises/spelling/spellingB2").default;
-  spellingC1Data =
-    require("../../../data/exercises/spelling/spellingC1").default;
-  spellingC2Data =
-    require("../../../data/exercises/spelling/spellingC2").default;
+  spellingRulesA1Data =
+    require("../../../../data/exercises/spelling/spellingRulesA1").default;
 } catch (error) {
   console.warn(
-    "Utilisations des données de test internes pour les exercices d'orthographe"
+    "Erreur lors de l'importation des fichiers de règles d'orthographe"
   );
-  // Utilise les données internes si les imports échouent
-  spellingA1Data = internalSpellingData.A1;
-  spellingA2Data = internalSpellingData.A2;
-  spellingB1Data = internalSpellingData.B1;
-  // Pour les autres niveaux, utilisez des exercices par défaut
-  const defaultExercises = {
-    title: "Default Spelling Exercises",
-    description: "Basic spelling exercises",
+  // Données par défaut en cas d'erreur
+  spellingRulesA1Data = {
+    title: "Spelling Rules",
+    description: "Basic spelling rules",
     exercises: [
       {
-        type: "dictation",
-        instruction: "Listen and spell the word",
-        correctSpelling: "example",
+        type: "spelling_rule",
+        rule: "Example rule",
+        instruction: "Apply the rule: Form the plural of 'cat'",
+        correctAnswer: "cats",
         hasHint: true,
-        explanation: "This is a sample exercise.",
+        hint: "Just add 's' to the end.",
+        explanation: "Most nouns form their plural by adding 's' at the end.",
       },
     ],
   };
-  spellingB2Data = defaultExercises;
-  spellingC1Data = defaultExercises;
-  spellingC2Data = defaultExercises;
 }
 
-const SpellingPractice = () => {
+const SpellingRulesPractice = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { level } = route.params || { level: "A1" };
@@ -192,11 +60,7 @@ const SpellingPractice = () => {
   const [userAttempts, setUserAttempts] = useState([]);
   const [hasHint, setHasHint] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const [speechActive, setSpeechActive] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // État pour la gestion du chargement
-
-  // Dans une implémentation complète avec react-native-tts, vous auriez besoin d'initialiser
-  // et de configurer TTS. Pour notre simulateur, ce n'est pas nécessaire.
+  const [isLoading, setIsLoading] = useState(true);
 
   // Détermine la couleur en fonction du niveau
   const getLevelColor = (level) => {
@@ -213,54 +77,25 @@ const SpellingPractice = () => {
 
   const levelColor = getLevelColor(level);
 
-  // Récupère les données en fonction du niveau
-  const getSpellingData = (level) => {
-    const dataMap = {
-      A1: spellingA1Data,
-      A2: spellingA2Data,
-      B1: spellingB1Data,
-      B2: spellingB2Data,
-      C1: spellingC1Data,
-      C2: spellingC2Data,
-    };
-    // Vérifiez d'abord si les données du niveau existent, sinon utilisez les données internes
-    const levelData = dataMap[level];
-    if (levelData && levelData.exercises && levelData.exercises.length > 0) {
-      return levelData;
-    }
-
-    // Essayez d'utiliser les données internes pour ce niveau
-    const internalData = internalSpellingData[level];
-    if (internalData) {
-      return internalData;
-    }
-
-    // En dernier recours, utilisez A1 comme fallback
-    return internalSpellingData.A1;
-  };
-
-  // Initialisation des données d'exercice en fonction du niveau
+  // Initialisation des données d'exercice
   useEffect(() => {
     try {
-      const data = getSpellingData(level);
-      console.log("Données chargées:", data); // Log pour déboguer
+      const data = spellingRulesA1Data;
+      console.log("Données de règles chargées:", data);
 
       if (data && data.exercises && data.exercises.length > 0) {
         setExercises(data.exercises);
         resetUserAttempts(data.exercises.length);
-        setIsLoading(false); // Marque le chargement comme terminé
+        setIsLoading(false);
       } else {
-        console.error("Format de données invalide:", data);
-        // Utiliser les données internes comme fallback
-        setExercises(internalSpellingData.A1.exercises);
-        resetUserAttempts(internalSpellingData.A1.exercises.length);
+        console.error("Format de données de règles invalide:", data);
         setIsLoading(false);
       }
     } catch (error) {
-      console.error("Erreur lors du chargement des exercices:", error);
-      // Utiliser les données internes comme fallback en cas d'erreur
-      setExercises(internalSpellingData.A1.exercises);
-      resetUserAttempts(internalSpellingData.A1.exercises.length);
+      console.error(
+        "Erreur lors du chargement des règles d'orthographe:",
+        error
+      );
       setIsLoading(false);
     }
   }, [level]);
@@ -274,12 +109,12 @@ const SpellingPractice = () => {
   // L'exercice actuel
   const currentExercise = exercises[currentExerciseIndex] || null;
 
-  // Fonction pour vérifier l'orthographe entrée par l'utilisateur
-  const checkSpelling = () => {
+  // Fonction pour vérifier la réponse de l'utilisateur
+  const checkAnswer = () => {
     if (!userInput.trim()) return;
 
     const input = userInput.trim().toLowerCase();
-    const correct = currentExercise.correctSpelling.toLowerCase();
+    const correct = currentExercise.correctAnswer.toLowerCase();
     const isCorrectAnswer = input === correct;
 
     // Met à jour les tentatives de l'utilisateur
@@ -359,82 +194,9 @@ const SpellingPractice = () => {
     setShowHint(false);
   };
 
-  // Utiliser la synthèse vocale pour prononcer le mot
-  const speakWord = () => {
-    if (!currentExercise) return;
-
-    setSpeechActive(true);
-
-    // Utilisation du simulateur TTS
-    TtsSimulator.setDefaultLanguage("en-US"); // ou 'fr-FR' pour le français
-    TtsSimulator.setDefaultRate(getSpeechRate(level));
-    TtsSimulator.speak(currentExercise.correctSpelling, {
-      onDone: () => {
-        setSpeechActive(false);
-      },
-    });
-
-    // NOTE: Dans un environnement réel avec react-native-tts, vous utiliseriez:
-    /*
-    Tts.setDefaultLanguage('en-US');
-    Tts.setDefaultRate(getSpeechRate(level));
-    Tts.speak(currentExercise.correctSpelling);
-    */
-  };
-
-  // Obtenir la vitesse de parole en fonction du niveau
-  const getSpeechRate = (level) => {
-    // Ajustez ces valeurs selon vos préférences
-    const rates = {
-      A1: 0.7, // Plus lent pour les débutants
-      A2: 0.8,
-      B1: 0.9,
-      B2: 1.0, // Vitesse normale
-      C1: 1.1,
-      C2: 1.2, // Plus rapide pour les avancés
-    };
-    return rates[level] || 0.9; // Valeur par défaut
-  };
-
-  // Répéter le mot à vitesse réduite (fonction utile pour les apprenants)
-  const speakWordSlowly = () => {
-    if (!currentExercise) return;
-
-    setSpeechActive(true);
-
-    // Utilisation du simulateur TTS
-    TtsSimulator.setDefaultLanguage("en-US");
-    TtsSimulator.setDefaultRate(0.5); // Toujours lent pour cette fonction
-    TtsSimulator.speak(currentExercise.correctSpelling, {
-      onDone: () => {
-        setSpeechActive(false);
-      },
-    });
-
-    // NOTE: Dans un environnement réel avec react-native-tts, vous utiliseriez:
-    /*
-    Tts.setDefaultLanguage('en-US');
-    Tts.setDefaultRate(0.5);
-    Tts.speak(currentExercise.correctSpelling);
-    */
-  };
-
   // Affiche un indice
   const toggleHint = () => {
     setShowHint(!showHint);
-  };
-
-  // Génère un indice en fonction du type d'exercice
-  const generateHint = () => {
-    if (!currentExercise) return "";
-
-    if (currentExercise.type === "dictation") {
-      return `Le mot commence par "${currentExercise.correctSpelling[0]}" et contient ${currentExercise.correctSpelling.length} lettres.`;
-    } else if (currentExercise.type === "correction") {
-      return `Il y a ${currentExercise.errorCount || 1} erreur(s) dans ce mot.`;
-    } else {
-      return `Ce mot contient ${currentExercise.correctSpelling.length} lettres.`;
-    }
   };
 
   // Détermine si l'indice est disponible pour l'exercice actuel
@@ -451,7 +213,7 @@ const SpellingPractice = () => {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading exercise...</Text>
+          <Text style={styles.loadingText}>Loading spelling rules...</Text>
         </View>
       </SafeAreaView>
     );
@@ -471,11 +233,11 @@ const SpellingPractice = () => {
           <View style={[styles.levelBadge, { backgroundColor: levelColor }]}>
             <Text style={styles.levelBadgeText}>{level}</Text>
           </View>
-          <Text style={styles.exerciseTitle}>Spelling Practice</Text>
+          <Text style={styles.exerciseTitle}>Spelling Rules</Text>
         </View>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>
-            No exercises found for this level.
+            No spelling rules found for this level.
           </Text>
           <TouchableOpacity
             style={[
@@ -509,7 +271,7 @@ const SpellingPractice = () => {
           <View style={[styles.levelBadge, { backgroundColor: levelColor }]}>
             <Text style={styles.levelBadgeText}>{level}</Text>
           </View>
-          <Text style={styles.exerciseTitle}>Spelling Practice</Text>
+          <Text style={styles.exerciseTitle}>Spelling Rules</Text>
         </View>
 
         <ScrollView
@@ -528,10 +290,10 @@ const SpellingPractice = () => {
 
             <Text style={styles.resultsFeedback}>
               {percentage >= 80
-                ? "Excellent! Your spelling is very accurate."
+                ? "Excellent! You've mastered these spelling rules."
                 : percentage >= 60
-                ? "Good job! Keep practicing to improve your spelling."
-                : "Keep working on your spelling skills. Practice makes perfect!"}
+                ? "Good job! Keep practicing these spelling rules."
+                : "Keep working on these spelling rules. Practice makes perfect!"}
             </Text>
 
             <View style={styles.answersReview}>
@@ -539,12 +301,9 @@ const SpellingPractice = () => {
 
               {exercises.map((exercise, index) => (
                 <View key={index} style={styles.reviewItem}>
+                  <Text style={styles.ruleText}>{exercise.rule}</Text>
                   <Text style={styles.reviewQuestion}>
-                    {exercise.type === "dictation"
-                      ? `Listen and spell: "${exercise.correctSpelling}"`
-                      : exercise.type === "correction"
-                      ? `Correct spelling of: "${exercise.wordToCorrect}"`
-                      : exercise.instruction}
+                    {exercise.instruction}
                   </Text>
                   <View style={styles.reviewAnswerContainer}>
                     <Text style={styles.reviewAnswerLabel}>Your answer:</Text>
@@ -565,13 +324,16 @@ const SpellingPractice = () => {
                     userAttempts[index].attempted && (
                       <View style={styles.correctionContainer}>
                         <Text style={styles.correctionLabel}>
-                          Correct spelling:
+                          Correct answer:
                         </Text>
                         <Text style={styles.correctionText}>
-                          {exercise.correctSpelling}
+                          {exercise.correctAnswer}
                         </Text>
                       </View>
                     )}
+                  <Text style={styles.explanationText}>
+                    {exercise.explanation}
+                  </Text>
                 </View>
               ))}
             </View>
@@ -617,7 +379,7 @@ const SpellingPractice = () => {
         <View style={[styles.levelBadge, { backgroundColor: levelColor }]}>
           <Text style={styles.levelBadgeText}>{level}</Text>
         </View>
-        <Text style={styles.exerciseTitle}>Spelling Practice</Text>
+        <Text style={styles.exerciseTitle}>Spelling Rules</Text>
       </View>
 
       {/* Barre de progression */}
@@ -656,85 +418,12 @@ const SpellingPractice = () => {
             },
           ]}
         >
-          <Text style={styles.exerciseType}>
-            {currentExercise.type === "dictation"
-              ? "Listen and Spell"
-              : currentExercise.type === "correction"
-              ? "Correct the Spelling"
-              : "Spelling Practice"}
-          </Text>
+          <View style={styles.ruleContainer}>
+            <Text style={styles.ruleLabel}>Rule:</Text>
+            <Text style={styles.ruleText}>{currentExercise.rule}</Text>
+          </View>
 
           <Text style={styles.instruction}>{currentExercise.instruction}</Text>
-
-          {/* Contenu spécifique au type d'exercice */}
-          {currentExercise.type === "dictation" ? (
-            <View style={styles.audioButtonsContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.speakButton,
-                  speechActive && styles.speakButtonActive,
-                  { borderColor: levelColor },
-                ]}
-                onPress={speakWord}
-                disabled={speechActive}
-              >
-                <Text style={[styles.speakButtonText, { color: levelColor }]}>
-                  {speechActive ? "Speaking..." : "Listen"}
-                </Text>
-                <Text
-                  style={[
-                    styles.speakIcon,
-                    speechActive && styles.speakIconActive,
-                  ]}
-                >
-                  🔊
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.speakButton,
-                  speechActive && styles.speakButtonActive,
-                  { borderColor: levelColor },
-                ]}
-                onPress={speakWordSlowly}
-                disabled={speechActive}
-              >
-                <Text style={[styles.speakButtonText, { color: levelColor }]}>
-                  {speechActive ? "Speaking..." : "Listen Slowly"}
-                </Text>
-                <Text
-                  style={[
-                    styles.speakIcon,
-                    speechActive && styles.speakIconActive,
-                  ]}
-                >
-                  🔉
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : currentExercise.type === "correction" ? (
-            <View style={styles.correctionExercise}>
-              <Text style={styles.wordToCorrect}>
-                {currentExercise.wordToCorrect}
-              </Text>
-              {currentExercise.context && (
-                <Text style={styles.contextText}>
-                  Context: {currentExercise.context}
-                </Text>
-              )}
-            </View>
-          ) : (
-            <View style={styles.imageContainer}>
-              {currentExercise.imageUrl && (
-                <Image
-                  source={{ uri: currentExercise.imageUrl }}
-                  style={styles.exerciseImage}
-                  resizeMode="contain"
-                />
-              )}
-            </View>
-          )}
 
           {/* Zone de saisie de l'utilisateur */}
           <View style={styles.inputContainer}>
@@ -760,7 +449,7 @@ const SpellingPractice = () => {
               editable={!showFeedback}
             />
 
-            {hasHint && (
+            {hasHint && !showFeedback && (
               <TouchableOpacity
                 style={[styles.hintButton, { borderColor: levelColor }]}
                 onPress={toggleHint}
@@ -773,14 +462,14 @@ const SpellingPractice = () => {
           </View>
 
           {/* Affichage de l'indice si activé */}
-          {showHint && (
+          {showHint && !showFeedback && (
             <View
               style={[
                 styles.hintContainer,
                 { backgroundColor: `${levelColor}10` },
               ]}
             >
-              <Text style={styles.hintText}>{generateHint()}</Text>
+              <Text style={styles.hintText}>{currentExercise.hint}</Text>
             </View>
           )}
 
@@ -797,17 +486,15 @@ const SpellingPractice = () => {
               </Text>
               {!isCorrect && (
                 <Text style={styles.correctSpelling}>
-                  The correct spelling is:{" "}
+                  The correct answer is:{" "}
                   <Text style={styles.spellingHighlight}>
-                    {currentExercise.correctSpelling}
+                    {currentExercise.correctAnswer}
                   </Text>
                 </Text>
               )}
-              {currentExercise.explanation && (
-                <Text style={styles.feedbackExplanation}>
-                  {currentExercise.explanation}
-                </Text>
-              )}
+              <Text style={styles.feedbackExplanation}>
+                {currentExercise.explanation}
+              </Text>
             </View>
           )}
         </Animated.View>
@@ -823,10 +510,10 @@ const SpellingPractice = () => {
                 ? styles.disabledButton
                 : [styles.enabledButton, { backgroundColor: levelColor }],
             ]}
-            onPress={checkSpelling}
+            onPress={checkAnswer}
             disabled={!userInput.trim()}
           >
-            <Text style={styles.actionButtonText}>Check Spelling</Text>
+            <Text style={styles.actionButtonText}>Check Answer</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -839,7 +526,7 @@ const SpellingPractice = () => {
           >
             <Text style={styles.actionButtonText}>
               {currentExerciseIndex < exercises.length - 1
-                ? "Next Exercise"
+                ? "Next Rule"
                 : "See Results"}
             </Text>
           </TouchableOpacity>
@@ -952,72 +639,31 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  exerciseType: {
-    fontSize: 16,
+  ruleContainer: {
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: "#f8fafc",
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: "#3b82f6",
+  },
+  ruleLabel: {
+    fontSize: 14,
     fontWeight: "600",
     color: "#64748b",
-    marginBottom: 8,
+    marginBottom: 4,
+  },
+  ruleText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#334155",
+    lineHeight: 22,
   },
   instruction: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#1e293b",
     marginBottom: 20,
-  },
-  speakButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 12,
-    borderWidth: 1,
-    borderRadius: 12,
-    marginBottom: 20,
-    backgroundColor: "white",
-  },
-  speakButtonActive: {
-    backgroundColor: "#f1f5f9",
-  },
-  speakButtonText: {
-    fontSize: 16,
-    fontWeight: "500",
-    marginRight: 8,
-  },
-  speakIcon: {
-    fontSize: 20,
-  },
-  speakIconActive: {
-    opacity: 0.6,
-  },
-  correctionExercise: {
-    backgroundColor: "#f8fafc",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-  },
-  wordToCorrect: {
-    fontSize: 20,
-    fontWeight: "500",
-    color: "#334155",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  contextText: {
-    fontSize: 14,
-    color: "#64748b",
-    fontStyle: "italic",
-    textAlign: "center",
-  },
-  imageContainer: {
-    width: "100%",
-    height: 180,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  exerciseImage: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 8,
   },
   inputContainer: {
     marginBottom: 16,
@@ -1223,6 +869,7 @@ const styles = StyleSheet.create({
   correctionContainer: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 8,
   },
   correctionLabel: {
     fontSize: 14,
@@ -1233,6 +880,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "500",
     color: "#10b981",
+  },
+  explanationText: {
+    fontSize: 14,
+    color: "#475569",
+    fontStyle: "italic",
+    marginTop: 8,
   },
   resultsButtons: {
     flexDirection: "row",
@@ -1256,4 +909,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SpellingPractice;
+export default SpellingRulesPractice;

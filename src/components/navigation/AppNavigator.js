@@ -10,8 +10,12 @@ import ErrorCorrectionExercise from "../screens/exercises/ErrorCorrectionExercis
 import PhrasesExpressions from "../screens/exercises/PhrasesExpressions";
 import LevelAssessment from "../screens/exercises/LevelAssessment";
 import ReadingExercise from "../screens/exercises/ReadingExercise";
-import SpellingPractice from "../screens/exercises/SpellingPractice";
 import WordGamesExercise from "../screens/exercises/WordGamesExercise";
+
+// Importation des nouveaux composants d'orthographe
+import SpellingSelectionScreen from "../screens/exercises/spelling/spellingSelectionScreen";
+import SpellingRulesPractice from "../screens/exercises/spelling/SpellingRulesPractice";
+import SpellingCorrectionPractice from "../screens/exercises/spelling/spellingCorrectionPractice";
 
 const Stack = createStackNavigator();
 
@@ -125,9 +129,23 @@ const AppNavigator = () => {
       />
       <Stack.Screen
         name="SpellingPractice"
-        component={SpellingPractice}
+        component={SpellingSelectionScreen}
         options={{
           title: "Spelling Practice",
+        }}
+      />
+      <Stack.Screen
+        name="SpellingRulesPractice"
+        component={SpellingRulesPractice}
+        options={{
+          title: "Spelling Rules",
+        }}
+      />
+      <Stack.Screen
+        name="SpellingCorrectionPractice"
+        component={SpellingCorrectionPractice}
+        options={{
+          title: "Spelling Correction",
         }}
       />
       <Stack.Screen

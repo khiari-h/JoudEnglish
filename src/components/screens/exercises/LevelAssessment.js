@@ -10,6 +10,7 @@ import {
   Platform,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import levelA1AssessmentData from "../../../data/exercises/assessments/levelA1Assessments";
 
 const LevelAssessment = () => {
   const navigation = useNavigation();
@@ -27,28 +28,19 @@ const LevelAssessment = () => {
   const [testCompleted, setTestCompleted] = useState(false);
 
   // Sections du test
+  // Sections du test (correspondant aux sections dans le fichier de données)
   const sections = [
     "vocabulary",
     "grammar",
-    "chatbot_writing",
-    "error_correction",
     "phrases_expressions",
+    "error_correction",
     "spelling",
+    "spelling_rules",
+    "reading_comprehension",
   ];
 
-  // Exemple de données de test (à remplacer par des données réelles)
-  const testData = {
-    vocabulary: {
-      questions: [
-        {
-          text: "What does 'diligent' mean?",
-          options: ["Lazy", "Hardworking", "Angry", "Sleepy"],
-          correctAnswer: 1,
-        },
-      ],
-    },
-    // Autres sections similaires...
-  };
+  // Données d'évaluation basées sur le niveau
+  const Data = levelA1AssessmentData;
 
   // Couleurs par niveau
   const getLevelColor = () => {
@@ -100,7 +92,7 @@ const LevelAssessment = () => {
 
   // Passer à la question suivante ou section suivante
   const goToNextQuestion = () => {
-    const currentSectionData = testData[currentSection];
+    const currentSectionData = Data[currentSection];
 
     if (currentQuestionIndex < currentSectionData.questions.length - 1) {
       // Passer à la question suivante dans la section
@@ -120,6 +112,12 @@ const LevelAssessment = () => {
         setTestCompleted(true);
       }
     }
+  };
+
+  // Nouvelle fonction pour réessayer la question actuelle
+  const tryAgain = () => {
+    setSelectedAnswer(null);
+    setShowFeedback(false);
   };
 
   // Rendu des résultats
@@ -144,7 +142,7 @@ const LevelAssessment = () => {
 
   // Rendu de la question actuelle
   const renderCurrentQuestion = () => {
-    const currentSectionData = testData[currentSection];
+    const currentSectionData = Data[currentSection];
     const currentQuestion = currentSectionData.questions[currentQuestionIndex];
 
     return (
@@ -194,6 +192,11 @@ const LevelAssessment = () => {
                 ? "Correct! Great job."
                 : "Oops! The correct answer is different."}
             </Text>
+            {currentQuestion.explanation && (
+              <Text style={styles.explanationText}>
+                {currentQuestion.explanation}
+              </Text>
+            )}
           </View>
         )}
       </Animated.View>
@@ -242,18 +245,32 @@ const LevelAssessment = () => {
             <Text style={styles.actionButtonText}>Check Answer</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: levelColor }]}
-            onPress={goToNextQuestion}
-          >
-            <Text style={styles.actionButtonText}>
-              Next{" "}
-              {currentQuestionIndex ===
-              testData[currentSection].questions.length - 1
-                ? "Section"
-                : "Question"}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.actionButtonsRow}>
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                styles.tryAgainButton,
+                { borderColor: levelColor },
+              ]}
+              onPress={tryAgain}
+            >
+              <Text style={[styles.actionButtonText, { color: levelColor }]}>
+                Try Again
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: levelColor }]}
+              onPress={goToNextQuestion}
+            >
+              <Text style={styles.actionButtonText}>
+                Next{" "}
+                {currentQuestionIndex ===
+                Data[currentSection].questions.length - 1
+                  ? "Section"
+                  : "Question"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </SafeAreaView>
@@ -428,6 +445,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: "white",
+  },
+
+  explanationText: {
+    fontSize: 14,
+    color: "#475569",
+    marginTop: 8,
+    fontStyle: "italic",
+    lineHeight: 20,
+  },
+  actionButtonsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  tryAgainButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    marginRight: 8,
+    flex: 1,
+  },
+  actionButton: {
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+    flex: 1,
   },
 });
 

@@ -60,7 +60,8 @@ const ExerciseSelection = ({ route }) => {
         navigation.navigate("SpellingPractice", { level });
         break;
       case "evaluation":
-        navigation.navigate("LevelAssessment", { level });
+        navigation.navigate("Evaluation", { level });
+        break;
         break;
       default:
         // Fallback au cas où l'ID ne correspond à aucun exercice connu
