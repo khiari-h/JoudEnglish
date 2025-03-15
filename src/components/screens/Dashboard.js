@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -17,15 +17,42 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
-// Composant Logo personnalisé
-const JoudLogo = () => (
-  <View style={styles.logoContainer}>
-    <View style={styles.logoBackground}>
-      <Text style={styles.logoText}>JOUD</Text>
+// Composant Logo personnalisé avec animation
+const JoudLogo = () => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const pulseAnimation = Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1.1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+    ]);
+
+    Animated.loop(pulseAnimation, { iterations: 3 }).start();
+
+    return () => {
+      scaleAnim.stopAnimation();
+    };
+  }, []);
+
+  return (
+    <View style={styles.logoContainer}>
+      <Animated.View
+        style={[styles.logoBackground, { transform: [{ scale: scaleAnim }] }]}
+      >
+        <Text style={styles.logoText}>JOUD</Text>
+      </Animated.View>
+      <Text style={styles.logoTagline}>English Made Easy</Text>
     </View>
-    <Text style={styles.logoTagline}>English Made Easy</Text>
-  </View>
-);
+  );
+};
 
 const Dashboard = ({ route }) => {
   const navigation = useNavigation();
@@ -34,7 +61,26 @@ const Dashboard = ({ route }) => {
   const [activeTipIndex, setActiveTipIndex] = useState(0);
   const [showLevelProgress, setShowLevelProgress] = useState(false);
 
-  // Données enrichies pour les défis quotidiens
+  // Animation pour l'entrée des cartes
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateYAnim = useRef(new Animated.Value(50)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateYAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  // Données des défis quotidiens (nous allons n'en afficher qu'un seul)
   const dailyChallenges = [
     {
       id: "1",
@@ -64,6 +110,10 @@ const Dashboard = ({ route }) => {
       color: "#64DFDF",
     },
   ];
+
+  // Sélection du défi du jour (dans une vraie app, cela pourrait être basé sur la date)
+  const todaysChallengeIndex = new Date().getDate() % dailyChallenges.length;
+  const todaysChallenge = dailyChallenges[todaysChallengeIndex];
 
   // Données pour les astuces linguistiques
   const languageTips = [
@@ -105,8 +155,15 @@ const Dashboard = ({ route }) => {
     { id: "c2", title: "C2 - Proficiency", color: "#36949D", progress: 0 },
   ];
 
-  // Niveaux d'apprentissage visibles par défaut (seulement 2)
-  const visibleLevels = allLearningLevels.slice(0, 2);
+  // Dernière activité de l'utilisateur
+  const lastActivity = {
+    title: "Conversation Practice",
+    type: "exercise",
+    date: "Today, 2:30 PM",
+    progress: 75,
+    topic: "Ordering at a Restaurant",
+    icon: "chatbubbles-outline",
+  };
 
   const renderChallengeProgress = (challenge) => {
     const progressPercentage = (challenge.progress / challenge.total) * 100;
@@ -153,7 +210,7 @@ const Dashboard = ({ route }) => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      {/* Header simplifié */}
+      {/* Header personnalisé */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <JoudLogo />
@@ -172,47 +229,139 @@ const Dashboard = ({ route }) => {
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Daily Challenges Section */}
-        <View style={styles.sectionContainer}>
+        {/* Dernière activité */}
+        <Animated.View
+          style={[
+            styles.sectionContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: translateYAnim }],
+            },
+          ]}
+        >
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Daily Challenges</Text>
+            <Text style={styles.sectionTitle}>Continue Learning</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.lastActivityCard}
+            onPress={() => {
+              /* Navigation vers la dernière activité */
+              navigation.navigate("Exercise", { id: lastActivity.topic });
+            }}
+          >
+            <View style={styles.lastActivityContent}>
+              <View
+                style={[
+                  styles.lastActivityIconContainer,
+                  { backgroundColor: "#7764E4" },
+                ]}
+              >
+                <Ionicons name={lastActivity.icon} size={28} color="white" />
+              </View>
+              <View style={styles.lastActivityDetails}>
+                <Text style={styles.lastActivityTitle}>
+                  {lastActivity.title}
+                </Text>
+                <Text style={styles.lastActivityTopic}>
+                  {lastActivity.topic}
+                </Text>
+                <View style={styles.progressContainer}>
+                  <View style={styles.progressBar}>
+                    <View
+                      style={[
+                        styles.progressFill,
+                        {
+                          width: `${lastActivity.progress}%`,
+                          backgroundColor: "#7764E4",
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.progressText}>
+                    {lastActivity.progress}%
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View style={styles.continueButtonContainer}>
+              <View style={styles.continueButton}>
+                <Ionicons name="play" size={16} color="white" />
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Défi quotidien (un seul) */}
+        <Animated.View
+          style={[
+            styles.sectionContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: translateYAnim }],
+            },
+          ]}
+        >
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today's Challenge</Text>
             <TouchableOpacity>
-              <Text style={styles.seeAllText}>See All</Text>
+              <Text style={styles.nextChallengeText}>
+                Tomorrow's Challenge →
+              </Text>
             </TouchableOpacity>
           </View>
 
-          <FlatList
-            data={dailyChallenges}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.challengesContainer}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[styles.challengeCard, { borderTopColor: item.color }]}
-                onPress={() => {
-                  /* Challenge navigation */
-                }}
+          <TouchableOpacity
+            style={[
+              styles.dailyChallengeCard,
+              { borderLeftColor: todaysChallenge.color },
+            ]}
+            onPress={() => {
+              /* Navigation vers le défi */
+            }}
+          >
+            <View style={styles.challengeHeader}>
+              <View
+                style={[
+                  styles.iconCircle,
+                  { backgroundColor: todaysChallenge.color },
+                ]}
               >
-                <View
-                  style={[styles.iconCircle, { backgroundColor: item.color }]}
-                >
-                  <Ionicons name={item.icon} size={24} color="white" />
-                </View>
-                <View style={styles.challengeTextContainer}>
-                  <Text style={styles.challengeTitle}>{item.title}</Text>
-                  <Text style={styles.challengeDescription}>
-                    {item.description}
-                  </Text>
-                </View>
-                {renderChallengeProgress(item)}
-              </TouchableOpacity>
-            )}
-          />
-        </View>
+                <Ionicons name={todaysChallenge.icon} size={28} color="white" />
+              </View>
+              <View style={styles.challengeBadge}>
+                <Text style={styles.challengeBadgeText}>Daily</Text>
+              </View>
+            </View>
+
+            <Text style={styles.challengeTitle}>{todaysChallenge.title}</Text>
+            <Text style={styles.challengeDescription}>
+              {todaysChallenge.description}
+            </Text>
+
+            {renderChallengeProgress(todaysChallenge)}
+
+            <TouchableOpacity
+              style={[
+                styles.startChallengeButton,
+                { backgroundColor: todaysChallenge.color },
+              ]}
+            >
+              <Text style={styles.startChallengeText}>Start Challenge</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Animated.View>
 
         {/* Learning Path Section */}
-        <View style={styles.sectionContainer}>
+        <Animated.View
+          style={[
+            styles.sectionContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: translateYAnim }],
+            },
+          ]}
+        >
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Learning Path</Text>
             <TouchableOpacity
@@ -244,10 +393,18 @@ const Dashboard = ({ route }) => {
           >
             <Text style={styles.viewProgressText}>View My Progress</Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
         {/* Language Tip Section avec Carousel */}
-        <View style={styles.sectionContainer}>
+        <Animated.View
+          style={[
+            styles.sectionContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: translateYAnim }],
+            },
+          ]}
+        >
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Language Tips</Text>
           </View>
@@ -289,9 +446,9 @@ const Dashboard = ({ route }) => {
           />
 
           {renderDotIndicators(languageTips, activeTipIndex)}
-        </View>
+        </Animated.View>
 
-        {/* Espace en bas pour éviter que le contenu soit caché */}
+        {/* Espace en bas pour améliorer le défilement */}
         <View style={{ height: 20 }} />
       </ScrollView>
 
@@ -321,7 +478,9 @@ const Dashboard = ({ route }) => {
                   style={styles.levelCard}
                   onPress={() => {
                     setShowLevelProgress(false);
-                    navigation.navigate("Exercises", { level: level.id });
+                    navigation.navigate("ExerciseSelection", {
+                      level: level.id.toUpperCase(),
+                    });
                   }}
                 >
                   <View style={styles.levelCardContent}>
@@ -427,6 +586,63 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 5,
   },
+  // Dernière activité
+  lastActivityCard: {
+    backgroundColor: "white",
+    borderRadius: 15,
+    padding: 15,
+    marginHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    ...Platform.select({
+      android: { elevation: 3 },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+    }),
+  },
+  lastActivityContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  lastActivityIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 15,
+  },
+  lastActivityDetails: {
+    flex: 1,
+  },
+  lastActivityTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1F2937",
+    marginBottom: 2,
+  },
+  lastActivityTopic: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 8,
+  },
+  continueButtonContainer: {
+    marginLeft: 10,
+  },
+  continueButton: {
+    backgroundColor: "#5E60CE",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   // General Styles
   scrollContainer: {
     flex: 1,
@@ -450,51 +666,65 @@ const styles = StyleSheet.create({
     color: "#5E60CE",
     fontWeight: "600",
   },
-  // Challenge Cards
-  challengesContainer: {
-    paddingLeft: 20,
-    paddingRight: 10,
+  nextChallengeText: {
+    color: "#6B7280",
+    fontSize: 14,
   },
-  challengeCard: {
+  // Nouveau style pour le défi quotidien unique
+  dailyChallengeCard: {
     backgroundColor: "white",
     borderRadius: 15,
-    padding: 15,
-    marginRight: 15,
-    width: width * 0.65,
-    borderTopWidth: 4,
+    padding: 20,
+    marginHorizontal: 20,
+    borderLeftWidth: 4,
     ...Platform.select({
-      android: { elevation: 3 },
+      android: { elevation: 4 },
       ios: {
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowRadius: 6,
       },
     }),
   },
+  challengeHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 15,
+  },
   iconCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
   },
-  challengeTextContainer: {
-    marginBottom: 10,
+  challengeBadge: {
+    backgroundColor: "#FEF3C7",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  challengeBadgeText: {
+    color: "#D97706",
+    fontWeight: "600",
+    fontSize: 12,
   },
   challengeTitle: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#1F2937",
-    marginBottom: 5,
+    marginBottom: 8,
   },
   challengeDescription: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: 16,
+    color: "#4B5563",
+    marginBottom: 20,
+    lineHeight: 22,
   },
   progressContainer: {
-    marginTop: 5,
+    marginBottom: 20,
   },
   progressText: {
     fontSize: 12,
@@ -503,14 +733,24 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   progressBar: {
-    height: 6,
+    height: 8,
     backgroundColor: "#E5E7EB",
-    borderRadius: 3,
+    borderRadius: 4,
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
-    borderRadius: 3,
+    borderRadius: 4,
+  },
+  startChallengeButton: {
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  startChallengeText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   // Learning Path Card
   learningPathCard: {

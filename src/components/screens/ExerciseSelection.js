@@ -59,8 +59,8 @@ const ExerciseSelection = ({ route }) => {
       case "spelling":
         navigation.navigate("SpellingPractice", { level });
         break;
-      case "quizzes":
-        navigation.navigate("QuizzesChallenges", { level });
+      case "evaluation":
+        navigation.navigate("LevelAssessment", { level });
         break;
       default:
         // Fallback au cas où l'ID ne correspond à aucun exercice connu
@@ -135,9 +135,9 @@ const ExerciseSelection = ({ route }) => {
       icon: "🔤",
     },
     {
-      id: "quizzes",
-      title: "Quizzes & Challenges",
-      description: "Test your knowledge with quizzes and challenges",
+      id: "evaluation",
+      title: "Level Assessment",
+      description: "Level Test – Show what you’ve learned!",
       progress: 0,
       color: levelColor,
       icon: "🏆",

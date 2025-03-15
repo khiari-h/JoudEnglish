@@ -6,12 +6,11 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
-  Image,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native"; // Ajoutez cet import
 
 const LevelSelection = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation(); // Ajoutez cette ligne pour obtenir l'objet navigation
 
   const levels = [
     {
@@ -90,6 +89,7 @@ const LevelSelection = () => {
               },
             ]}
             onPress={() => {
+              // Naviguez vers ExerciseSelection en passant le niveau
               navigation.navigate("ExerciseSelection", { level: level.name });
             }}
           >
@@ -140,6 +140,7 @@ const LevelSelection = () => {
             <TouchableOpacity
               style={[styles.startButton, { backgroundColor: level.color }]}
               onPress={() => {
+                // Naviguez vers ExerciseSelection en passant le niveau
                 navigation.navigate("ExerciseSelection", { level: level.name });
               }}
             >
@@ -161,13 +162,6 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 25,
     paddingHorizontal: 20,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1f2937",
-    marginBottom: 8,
-    textAlign: "center",
   },
   headerSubtitle: {
     fontSize: 16,
