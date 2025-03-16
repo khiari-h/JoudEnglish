@@ -242,7 +242,14 @@ const LevelAssessment = () => {
             onPress={validateAnswer}
             disabled={selectedAnswer === null}
           >
-            <Text style={styles.actionButtonText}>Check Answer</Text>
+            <Text
+              style={[
+                styles.actionButtonText,
+                { fontSize: 16, fontWeight: "700" },
+              ]}
+            >
+              Check Answer
+            </Text>
           </TouchableOpacity>
         ) : (
           <View style={styles.actionButtonsRow}>
@@ -290,6 +297,8 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderBottomWidth: 1,
     borderBottomColor: "#f1f5f9",
+    elevation: 2, // Pour une meilleure ombre sur Android
+    zIndex: 1, // Assurer que l'en-tête est au-dessus des autres éléments
   },
   backButton: {
     marginRight: 15,
@@ -309,6 +318,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 12,
     marginRight: 10,
+    justifyContent: "center", // Centrer verticalement
+    alignItems: "center", // Centrer horizontalement
+    minWidth: 36, // Largeur minimale
   },
   levelBadgeText: {
     fontSize: 14,
@@ -409,6 +421,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: "center",
+    justifyContent: "center", // Ajouter cette ligne
+    flex: 1,
+    minHeight: 48, // Ajouter une hauteur minimale
   },
   disabledButton: {
     opacity: 0.5,
@@ -417,6 +432,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: "white",
+    textAlign: "center", // Garantir l'alignement du texte
+    includeFontPadding: false, // Améliorer le rendu sur Android
   },
   resultsContainer: {
     flex: 1,
