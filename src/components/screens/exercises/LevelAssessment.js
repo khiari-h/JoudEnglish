@@ -245,7 +245,14 @@ const LevelAssessment = () => {
             <Text
               style={[
                 styles.actionButtonText,
-                { fontSize: 16, fontWeight: "700" },
+                {
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "white", // Assurez-vous que la couleur est explicitement définie
+                  textShadowColor: "rgba(0, 0, 0, 0.5)", // Ajouter une ombre au texte pour plus de contraste
+                  textShadowOffset: { width: 0, height: 1 },
+                  textShadowRadius: 1,
+                },
               ]}
             >
               Check Answer
@@ -479,12 +486,6 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderWidth: 1,
     marginRight: 8,
-    flex: 1,
-  },
-  actionButton: {
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: "center",
     flex: 1,
   },
 });
