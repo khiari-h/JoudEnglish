@@ -34,7 +34,7 @@ const getLevelColor = (level) => {
 
 const AppNavigator = () => {
   const userProfile = {
-    name: "Hamdane KhiariG",
+    name: "Hamdane Khiari",
     streak: 7,
   };
 
