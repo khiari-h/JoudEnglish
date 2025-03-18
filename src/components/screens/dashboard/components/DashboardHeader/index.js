@@ -2,7 +2,7 @@
 import React from "react";
 import { View, Text } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import JoudLogo from "../../../components/common/JoudLogo";
+import JoudLogo from "../../../../common/JoudLogo";
 import styles from "./style";
 
 const DashboardHeader = ({ name, streak }) => {
