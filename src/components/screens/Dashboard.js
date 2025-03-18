@@ -5,7 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 
 // Composants
 import DashboardHeader from "./components/DashboardHeader";
-import ContinueLearning from "./components/ContinueLearning;
+import ContinueLearning from "./components/ContinueLearning";
 import DailyChallenge from "./components/DailyChallenge";
 import LearningPath from "./components/LearningPath";
 import LanguageTips from "./components/LanguageTips";
