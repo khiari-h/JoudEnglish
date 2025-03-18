@@ -8,7 +8,7 @@ import {
   ScrollView 
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import styles from "./styles";
+import styles from "./style";
 
 const LevelProgressModal = ({ visible, levels, onClose, onSelectLevel }) => {
   return (

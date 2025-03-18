@@ -1,7 +1,7 @@
 // Dashboard/components/LearningPath/index.js
 import React, { useRef, useEffect } from "react";
 import { View, Text, TouchableOpacity, Animated } from "react-native";
-import styles from "./styles";
+import styles from "./style";
 
 const LearningPath = ({ onSelectLevel, onViewProgress }) => {
   // Animation pour l'entrée des cartes

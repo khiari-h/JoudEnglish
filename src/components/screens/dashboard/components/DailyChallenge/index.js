@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from "react";
 import { View, Text, TouchableOpacity, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import styles from "./styles";
+import styles from "./style";
 
 const DailyChallenge = ({ challenge }) => {
   // Animation pour l'entrée des cartes
