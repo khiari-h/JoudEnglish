@@ -1,7 +1,7 @@
 // components/common/DotIndicator/index.js
 import React from "react";
 import { View } from "react-native";
-import styles from "./styles";
+import styles from "./style";
 
 const DotIndicator = ({ 
   count, 

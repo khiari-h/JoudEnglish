@@ -1,7 +1,7 @@
 // components/common/AnimatedCard/index.js
 import React, { useRef, useEffect } from "react";
 import { View, Animated } from "react-native";
-import styles from "./styles";
+import styles from "./style";
 
 const AnimatedCard = ({ 
   children, 

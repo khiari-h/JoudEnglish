@@ -1,7 +1,7 @@
 // components/common/JoudLogo/index.js
 import React, { useRef, useEffect } from "react";
 import { View, Text, Animated } from "react-native";
-import styles from "./styles";
+import styles from "./style";
 
 const JoudLogo = () => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
