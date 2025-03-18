@@ -1,6 +1,6 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-import Dashboard from "../screens/Dashboard";
+import Dashboard from "../screens/dashboard";
 import LevelSelection from "../screens/LevelSelection";
 import ExerciseSelection from "../screens/ExerciseSelection";
 import VocabularyExercise from "../screens/exercises/VocabularyExercise";
