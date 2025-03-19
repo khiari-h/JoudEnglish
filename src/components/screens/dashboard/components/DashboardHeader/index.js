@@ -24,4 +24,3 @@ const DashboardHeader = ({ name, streak }) => {
 };
 
 export default DashboardHeader;
-

@@ -1,4 +1,4 @@
-// Dashboard/components/LevelProgressModal/styles.js
+// Dashboard/components/LevelProgressModal/style.js
 import { StyleSheet, Platform } from "react-native";
 import theme from "../../styles/theme";
 
@@ -43,9 +43,15 @@ export default StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    // Remplacer la référence à theme.shadows.android.small par des valeurs explicites
     ...Platform.select({
-      android: theme.shadows.android.small,
-      ios: theme.shadows.ios.small,
+      android: { elevation: 2 },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+      },
     }),
   },
   levelCardContent: {

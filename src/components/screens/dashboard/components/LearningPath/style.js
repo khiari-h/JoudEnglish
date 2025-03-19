@@ -1,3 +1,4 @@
+// Dashboard/components/LearningPath/style.js
 import { StyleSheet, Platform } from "react-native";
 import theme from "../../styles/theme";
 
@@ -26,9 +27,15 @@ export default StyleSheet.create({
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.lg,
     marginHorizontal: theme.spacing.lg,
+    // Remplacer la référence à theme.shadows.android.medium par des valeurs explicites
     ...Platform.select({
-      android: theme.shadows.android.medium,
-      ios: theme.shadows.ios.medium,
+      android: { elevation: 3 },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
     }),
   },
   learningPathContent: {

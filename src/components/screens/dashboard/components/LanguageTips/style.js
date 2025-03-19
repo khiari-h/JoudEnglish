@@ -32,9 +32,15 @@ export default StyleSheet.create({
     padding: theme.spacing.lg,
     flexDirection: "row",
     alignItems: "flex-start",
+    // Remplacer par des valeurs explicites au lieu de theme.shadows
     ...Platform.select({
-      android: theme.shadows.android.medium,
-      ios: theme.shadows.ios.medium,
+      android: { elevation: 3 },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
     }),
   },
   tipIconContainer: {
