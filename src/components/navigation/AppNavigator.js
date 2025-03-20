@@ -2,7 +2,7 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import Dashboard from "../screens/dashboard";
 import LevelSelection from "../screens/LevelSelection";
-import ExerciseSelection from "../screens/ExerciseSelection";
+import ExerciseSelection from "../screens/ExerciceSelection";
 import VocabularyExercise from "../screens/exercises/VocabularyExercise";
 import GrammarExercise from "../screens/exercises/GrammarExercise";
 import ChatbotWriting from "../screens/exercises/ChatbotWriting";
