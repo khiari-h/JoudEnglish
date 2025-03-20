@@ -1,9 +1,8 @@
-
 // LevelSelection/index.js
 import React from "react";
 import { View, Text, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import LevelCard from "./components/LevelCard";
+import LevelCard from "./components/levelCard";
 import { levels } from "./data"; // Optionnel, déplacé dans un fichier séparé
 import styles from "./style";
 

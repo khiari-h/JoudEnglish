@@ -12,15 +12,15 @@ import LanguageTips from "./components/LanguageTips";
 import LevelProgressModal from "./components/LevelProgressModal";
 
 // Styles et données
-import styles from "./style";  // Correction : style.js au singulier
-import { challengesData, tipsData, levelsData } from "./data/mockData";  // Correction : chemin local
-import theme from "./styles/theme";  // Correction : chemin local
+import styles from "./style"; // Correction : style.js au singulier
+import { challengesData, tipsData, levelsData } from "./data/mockData"; // Correction : chemin local
+import theme from "../../../styles/theme"; // Correction : chemin local
 
 const Dashboard = ({ route }) => {
   const navigation = useNavigation();
   const { name = "User", streak = 0 } = route?.params || {};
   const [showLevelProgress, setShowLevelProgress] = useState(false);
-  
+
   // Sélection du défi du jour
   const todaysChallengeIndex = new Date().getDate() % challengesData.length;
   const todaysChallenge = challengesData[todaysChallengeIndex];
@@ -46,28 +46,31 @@ const Dashboard = ({ route }) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      
+
       <DashboardHeader name={name} streak={streak} />
-      
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <ContinueLearning 
-          activity={lastActivity} 
-          onPress={() => handleNavigateToExercise(lastActivity.topic)} 
+
+      <ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <ContinueLearning
+          activity={lastActivity}
+          onPress={() => handleNavigateToExercise(lastActivity.topic)}
         />
-        
+
         <DailyChallenge challenge={todaysChallenge} />
-        
-        <LearningPath 
+
+        <LearningPath
           onSelectLevel={() => navigation.navigate("LevelSelection")}
           onViewProgress={() => setShowLevelProgress(true)}
         />
-        
+
         <LanguageTips tips={tipsData} />
-        
+
         <View style={{ height: theme.spacing.lg }} />
       </ScrollView>
-      
-      <LevelProgressModal 
+
+      <LevelProgressModal
         visible={showLevelProgress}
         levels={levelsData}
         onClose={() => setShowLevelProgress(false)}

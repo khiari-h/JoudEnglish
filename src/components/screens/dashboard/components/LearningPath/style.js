@@ -1,6 +1,6 @@
 // Dashboard/components/LearningPath/style.js
 import { StyleSheet, Platform } from "react-native";
-import theme from "../../styles/theme";
+import theme from "../../../../../styles/theme";
 
 export default StyleSheet.create({
   sectionContainer: {

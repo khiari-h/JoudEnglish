@@ -1,6 +1,6 @@
 // Dashboard/components/LanguageTips/styles.js
 import { StyleSheet, Platform, Dimensions } from "react-native";
-import theme from "../../styles/theme";
+import theme from "../../../../../styles/theme";
 
 const { width } = Dimensions.get("window");
 
