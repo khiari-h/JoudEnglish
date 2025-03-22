@@ -1,5 +1,6 @@
 import { useProgressContext } from '../contexts/ProgressContext';
 import { useNavigation } from '@react-navigation/native';
+import { EXERCISE_ROUTES } from '../constants/exercicesTypes';
 
 /**
  * Hook principal pour accéder et manipuler les données de progression
@@ -60,15 +61,9 @@ export const useProgress = () => {
     const activity = getLastActivity();
     if (!activity) return;
 
-    // Navigation vers l'écran approprié selon le type
-    const routeMap = {
-      vocabulary: 'VocabularyExercise',
-      grammar: 'GrammarExercise',
-      chatbot: 'ChatbotWriting',
-      // etc.
-    };
-
-    const route = routeMap[activity.type];
+    // Utilisation du mapping EXERCISE_ROUTES pour éviter la duplication
+    const route = EXERCISE_ROUTES[activity.type];
+    
     if (route) {
       navigation.navigate(route, { 
         level: activity.level, 

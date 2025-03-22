@@ -1,31 +1,23 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveData, loadData } from '../utils/storage';
+import { EXERCISE_TYPES, LEVELS } from '../constants/exercicesTypes';
 
-// Structure initiale des données
+// Structure initiale des données avec initialisation des types d'exercices pour chaque niveau
 const initialProgressState = {
   // Dernière activité pour "Continue Learning"
   lastActivity: null,
   
   // Progression globale par niveau
-  levelProgress: {
-    "A1": 0,
-    "A2": 0,
-    "B1": 0,
-    "B2": 0,
-    "C1": 0,
-    "C2": 0,
-  },
+  levelProgress: Object.fromEntries(LEVELS.map(level => [level, 0])),
   
   // Progression par type d'exercice dans chaque niveau
-  exerciseTypeProgress: {
-    "A1": {},
-    "A2": {},
-    "B1": {},
-    "B2": {},
-    "C1": {},
-    "C2": {},
-  },
+  exerciseTypeProgress: Object.fromEntries(
+    LEVELS.map(level => [
+      level, 
+      Object.fromEntries(Object.values(EXERCISE_TYPES).map(type => [type, 0]))
+    ])
+  ),
   
   // Progression détaillée des exercices spécifiques
   exerciseProgress: {}
@@ -133,6 +125,5 @@ export const ProgressProvider = ({ children }) => {
     </ProgressContext.Provider>
   );
 };
-
 
 export const useProgressContext = () => useContext(ProgressContext);
