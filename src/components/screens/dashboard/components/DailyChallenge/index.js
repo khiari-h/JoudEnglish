@@ -1,10 +1,11 @@
 // Dashboard/components/DailyChallenge/index.js
 import React, { useRef, useEffect } from "react";
-import { View, Text, TouchableOpacity, Animated } from "react-native";
+import { View, Text, Animated, Pressable } from "react-native";
+import Button from "../../../../ui/Button";
 import { Ionicons } from "@expo/vector-icons";
 import styles from "./style";
 
-const DailyChallenge = ({ challenge }) => {
+const DailyChallenge = ({ challenge, onPress }) => {
   // Animation pour l'entrée des cartes
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(50)).current;
@@ -46,6 +47,12 @@ const DailyChallenge = ({ challenge }) => {
     );
   };
 
+  // Fonction pour afficher le défi de demain
+  const handleTomorrowChallenge = () => {
+    // Implémenter la logique pour afficher le défi de demain
+    console.log("Afficher le défi de demain");
+  };
+
   return (
     <Animated.View
       style={[
@@ -58,25 +65,26 @@ const DailyChallenge = ({ challenge }) => {
     >
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Today's Challenge</Text>
-        <TouchableOpacity>
-          <Text style={styles.nextChallengeText}>
-            Tomorrow's Challenge →
-          </Text>
-        </TouchableOpacity>
+        <Button
+          title="Tomorrow's Challenge →"
+          variant="text"
+          color={styles.nextChallengeText?.color || "#6B7280"}
+          size="small"
+          onPress={handleTomorrowChallenge}
+        />
       </View>
 
-      <TouchableOpacity
-        style={[
+      <Pressable
+        style={({ pressed }) => [
           styles.dailyChallengeCard,
           { borderLeftColor: challenge.color },
+          { opacity: pressed ? 0.9 : 1 },
         ]}
+        onPress={onPress}
       >
         <View style={styles.challengeHeader}>
           <View
-            style={[
-              styles.iconCircle,
-              { backgroundColor: challenge.color },
-            ]}
+            style={[styles.iconCircle, { backgroundColor: challenge.color }]}
           >
             <Ionicons name={challenge.icon} size={28} color="white" />
           </View>
@@ -86,24 +94,22 @@ const DailyChallenge = ({ challenge }) => {
         </View>
 
         <Text style={styles.challengeTitle}>{challenge.title}</Text>
-        <Text style={styles.challengeDescription}>
-          {challenge.description}
-        </Text>
+        <Text style={styles.challengeDescription}>{challenge.description}</Text>
 
         {renderChallengeProgress()}
 
-        <TouchableOpacity
-          style={[
-            styles.startChallengeButton,
-            { backgroundColor: challenge.color },
-          ]}
-        >
-          <Text style={styles.startChallengeText}>Start Challenge</Text>
-        </TouchableOpacity>
-      </TouchableOpacity>
+        <Button
+          title="Start Challenge"
+          color={challenge.color}
+          onPress={onPress}
+          fullWidth={true}
+          size="medium"
+          style={styles.startChallengeButton}
+          textStyle={styles.startChallengeText}
+        />
+      </Pressable>
     </Animated.View>
   );
 };
 
 export default DailyChallenge;
-

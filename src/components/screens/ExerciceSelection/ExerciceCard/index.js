@@ -1,19 +1,21 @@
 // ExerciseSelection/components/ExerciseCard/index.js
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, Pressable } from "react-native";
+import Button from "../../../ui/Button";
 import styles from "./style";
 
 const ExerciseCard = ({ exercise, onPress, isLast }) => {
   const { title, description, icon, color, progress } = exercise;
 
   return (
-    <TouchableOpacity
-      style={[
+    <Pressable
+      style={({ pressed }) => [
         styles.exerciseCard,
         {
           borderLeftWidth: 4,
           borderLeftColor: color,
           marginBottom: isLast ? 30 : 15,
+          opacity: pressed ? 0.95 : 1,
         },
       ]}
       onPress={onPress}
@@ -55,23 +57,23 @@ const ExerciseCard = ({ exercise, onPress, isLast }) => {
         </View>
       ) : (
         <View style={styles.newBadgeContainer}>
-          <View
-            style={[styles.newBadge, { backgroundColor: `${color}15` }]}
-          >
+          <View style={[styles.newBadge, { backgroundColor: `${color}15` }]}>
             <Text style={[styles.newBadgeText, { color: color }]}>New</Text>
           </View>
         </View>
       )}
 
       <View style={styles.startButtonContainer}>
-        <TouchableOpacity
-          style={[styles.startButton, { backgroundColor: color }]}
+        <Button
+          title="Start"
+          color={color}
+          fullWidth={true}
+          style={styles.startButton}
+          textStyle={styles.startButtonText}
           onPress={onPress}
-        >
-          <Text style={styles.startButtonText}>Start</Text>
-        </TouchableOpacity>
+        />
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

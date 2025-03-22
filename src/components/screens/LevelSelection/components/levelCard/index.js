@@ -1,18 +1,20 @@
 // LevelSelection/components/LevelCard/index.js
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, Pressable } from "react-native";
+import Button from "../../../../ui/Button";
 import styles from "./style";
 
 const LevelCard = ({ level, onSelect }) => {
   const { name, title, description, progress, color, icon } = level;
 
   return (
-    <TouchableOpacity
-      style={[
+    <Pressable
+      style={({ pressed }) => [
         styles.levelCard,
         {
           borderLeftWidth: 5,
           borderLeftColor: color,
+          opacity: pressed ? 0.95 : 1,
         },
       ]}
       onPress={() => onSelect(name)}
@@ -29,12 +31,7 @@ const LevelCard = ({ level, onSelect }) => {
 
         <View style={styles.levelInfo}>
           <View style={styles.levelHeader}>
-            <View
-              style={[
-                styles.levelBadge,
-                { backgroundColor: color },
-              ]}
-            >
+            <View style={[styles.levelBadge, { backgroundColor: color }]}>
               <Text style={styles.levelBadgeText}>{name}</Text>
             </View>
             <Text style={styles.levelTitle}>{title}</Text>
@@ -61,13 +58,15 @@ const LevelCard = ({ level, onSelect }) => {
         </View>
       </View>
 
-      <TouchableOpacity
-        style={[styles.startButton, { backgroundColor: color }]}
+      <Button
+        title="Start Learning"
+        color={color}
+        fullWidth={true}
+        style={styles.startButton}
+        textStyle={styles.startButtonText}
         onPress={() => onSelect(name)}
-      >
-        <Text style={styles.startButtonText}>Start Learning</Text>
-      </TouchableOpacity>
-    </TouchableOpacity>
+      />
+    </Pressable>
   );
 };
 

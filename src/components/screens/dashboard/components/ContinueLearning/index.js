@@ -1,7 +1,8 @@
 // Dashboard/components/ContinueLearning/index.js
 import React, { useRef, useEffect } from "react";
-import { View, Text, TouchableOpacity, Animated } from "react-native";
+import { View, Text, Pressable, Animated } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import Button from "../../../../ui/Button";
 import styles from "./style";
 
 const ContinueLearning = ({ activity, onPress }) => {
@@ -38,8 +39,11 @@ const ContinueLearning = ({ activity, onPress }) => {
         <Text style={styles.sectionTitle}>Continue Learning</Text>
       </View>
 
-      <TouchableOpacity
-        style={styles.lastActivityCard}
+      <Pressable
+        style={({ pressed }) => [
+          styles.lastActivityCard,
+          { opacity: pressed ? 0.9 : 1 },
+        ]}
         onPress={onPress}
       >
         <View style={styles.lastActivityContent}>
@@ -52,12 +56,8 @@ const ContinueLearning = ({ activity, onPress }) => {
             <Ionicons name={activity.icon} size={28} color="white" />
           </View>
           <View style={styles.lastActivityDetails}>
-            <Text style={styles.lastActivityTitle}>
-              {activity.title}
-            </Text>
-            <Text style={styles.lastActivityTopic}>
-              {activity.topic}
-            </Text>
+            <Text style={styles.lastActivityTitle}>{activity.title}</Text>
+            <Text style={styles.lastActivityTopic}>{activity.topic}</Text>
             <View style={styles.progressContainer}>
               <View style={styles.progressBar}>
                 <View
@@ -70,21 +70,23 @@ const ContinueLearning = ({ activity, onPress }) => {
                   ]}
                 />
               </View>
-              <Text style={styles.progressText}>
-                {activity.progress}%
-              </Text>
+              <Text style={styles.progressText}>{activity.progress}%</Text>
             </View>
           </View>
         </View>
         <View style={styles.continueButtonContainer}>
-          <View style={styles.continueButton}>
-            <Ionicons name="play" size={16} color="white" />
-          </View>
+          {/* Utiliser le nouveau Button avec l'icône */}
+          <Button
+            icon={<Ionicons name="play" size={16} color="white" />}
+            color="#5E60CE"
+            size="small"
+            style={styles.continueButton}
+            onPress={onPress}
+          />
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </Animated.View>
   );
 };
 
 export default ContinueLearning;
-
