@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import styles from './style';
+import { View, Text, ScrollView } from 'react-native';
+import Button from '../../../../../ui/Button';
+import styles from './styles';
 
 /**
  * Composant permettant de sélectionner un scénario de conversation
@@ -44,28 +45,25 @@ const ScenarioSelector = ({ scenarios, selectedIndex, onScenarioChange, levelCol
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
       >
-        {scenarios.map((scenarioItem, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.button,
-              selectedIndex === index && [
-                styles.selectedButton,
-                { borderColor: levelColor },
-              ],
-            ]}
-            onPress={() => onScenarioChange(index)}
-          >
-            <Text
+        {scenarios.map((scenarioItem, index) => {
+          const isSelected = selectedIndex === index;
+          
+          return (
+            <Button
+              key={index}
+              title={scenarioItem.title}
+              onPress={() => onScenarioChange(index)}
+              variant="outlined"
+              color={isSelected ? levelColor : "#64748b"}
+              size="small"
               style={[
-                styles.buttonText,
-                selectedIndex === index && { color: levelColor },
+                styles.button,
+                isSelected && styles.selectedButton
               ]}
-            >
-              {scenarioItem.title}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              textStyle={styles.buttonText}
+            />
+          );
+        })}
       </ScrollView>
     </View>
   );

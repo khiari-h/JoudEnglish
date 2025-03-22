@@ -1,6 +1,7 @@
 import React from 'react';
-import { ScrollView, TouchableOpacity, Text } from 'react-native';
-import styles from './style';
+import { ScrollView } from 'react-native';
+import Button from '../../../../../ui/Button'; 
+import styles from './styles';
 
 /**
  * Composant affichant une liste horizontale de suggestions de messages
@@ -23,15 +24,16 @@ const SuggestionsList = ({ suggestions, onSuggestionPress, levelColor }) => {
       contentContainerStyle={styles.contentContainer}
     >
       {suggestions.map((suggestion, index) => (
-        <TouchableOpacity
+        <Button
           key={index}
-          style={[styles.suggestionBubble, { borderColor: levelColor }]}
+          title={suggestion}
           onPress={() => onSuggestionPress(suggestion)}
-        >
-          <Text style={[styles.suggestionText, { color: levelColor }]}>
-            {suggestion}
-          </Text>
-        </TouchableOpacity>
+          variant="outlined"
+          color={levelColor}
+          size="small"
+          style={styles.suggestionBubble}
+          textStyle={styles.suggestionText}
+        />
       ))}
     </ScrollView>
   );

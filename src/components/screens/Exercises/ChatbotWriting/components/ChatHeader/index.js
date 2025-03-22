@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import styles from './style';
+import Button from '../../../../../ui/Button';
+import styles from './styles';
 
 /**
  * En-tête du composant ChatbotWriting avec navigation et badge de niveau
@@ -24,12 +25,15 @@ const ChatHeader = ({ level, levelColor, onBack }) => {
   
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.backButton}
+      <Button
+        title="←"
         onPress={handleBack}
-      >
-        <Text style={styles.backButtonText}>←</Text>
-      </TouchableOpacity>
+        variant="text"
+        color="#475569"
+        size="small"
+        style={styles.backButton}
+        textStyle={styles.backButtonText}
+      />
       <View style={[styles.levelBadge, { backgroundColor: levelColor }]}>
         <Text style={styles.levelBadgeText}>{level}</Text>
       </View>

@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import styles from './style';
+import { View, Text } from 'react-native';
+import Button from '../../../../../ui/Button';
+import styles from './styles';
 
 /**
  * Composant affichant la description du scénario actuel avec bouton d'aide
@@ -17,14 +18,15 @@ const ScenarioDescription = ({ description, showHelp, toggleHelp, levelColor }) 
       <Text style={styles.descriptionText}>
         {description || "Pratiquez vos compétences d'écriture dans cette conversation."}
       </Text>
-      <TouchableOpacity 
-        style={styles.helpButton} 
+      <Button
+        title={showHelp ? "Masquer l'aide" : "Afficher l'aide"}
         onPress={toggleHelp}
-      >
-        <Text style={[styles.helpButtonText, { color: levelColor }]}>
-          {showHelp ? "Masquer l'aide" : "Afficher l'aide"}
-        </Text>
-      </TouchableOpacity>
+        variant="text"
+        color={levelColor}
+        size="small"
+        style={styles.helpButton}
+        textStyle={styles.helpButtonText}
+      />
     </View>
   );
 };

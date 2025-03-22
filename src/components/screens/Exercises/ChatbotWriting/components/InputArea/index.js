@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, TextInput, TouchableOpacity, Text } from 'react-native';
-import styles from './style';
+import { View, TextInput } from 'react-native';
+import Button from '../../../../../ui/Button';
+import styles from './styles';
 
 /**
  * Composant de zone de saisie pour l'envoi de messages
@@ -24,18 +25,18 @@ const InputArea = ({ message, setMessage, onSendMessage, levelColor }) => {
         placeholderTextColor="#9ca3af"
         multiline
       />
-      <TouchableOpacity
+      <Button
+        title="↑"
+        onPress={onSendMessage}
+        color={levelColor}
+        size="small"
         style={[
           styles.sendButton,
-          isMessageEmpty
-            ? styles.disabledButton
-            : { backgroundColor: levelColor },
+          isMessageEmpty && styles.disabledButton
         ]}
-        onPress={onSendMessage}
+        textStyle={styles.sendButtonText}
         disabled={isMessageEmpty}
-      >
-        <Text style={styles.sendButtonText}>↑</Text>
-      </TouchableOpacity>
+      />
     </View>
   );
 };
