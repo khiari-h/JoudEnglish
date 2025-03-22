@@ -1,51 +1,138 @@
-// src/contexts/ProgressContext.js
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { saveData, loadData } from '../utils/storage';
 
-const ProgressContext = createContext();
+// Structure initiale des données
+const initialProgressState = {
+  // Dernière activité pour "Continue Learning"
+  lastActivity: null,
+  
+  // Progression globale par niveau
+  levelProgress: {
+    "A1": 0,
+    "A2": 0,
+    "B1": 0,
+    "B2": 0,
+    "C1": 0,
+    "C2": 0,
+  },
+  
+  // Progression par type d'exercice dans chaque niveau
+  exerciseTypeProgress: {
+    "A1": {},
+    "A2": {},
+    "B1": {},
+    "B2": {},
+    "C1": {},
+    "C2": {},
+  },
+  
+  // Progression détaillée des exercices spécifiques
+  exerciseProgress: {}
+};
 
-export const useProgress = () => useContext(ProgressContext);
+// Création du contexte
+export const ProgressContext = createContext();
 
+// Provider qui encapsule l'application
 export const ProgressProvider = ({ children }) => {
-  const [progress, setProgress] = useState({
-    levels: {
-      a1: { completed: 0, total: 100 },
-      a2: { completed: 0, total: 100 },
-      b1: { completed: 0, total: 100 },
-      b2: { completed: 0, total: 100 },
-      c1: { completed: 0, total: 100 },
-      c2: { completed: 0, total: 100 },
-    },
-    exercises: {},
-  });
+  const [progressData, setProgressData] = useState(initialProgressState);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const updateProgress = (level, exerciseType, amount) => {
-    setProgress((prev) => {
-      // Mettre à jour le progrès pour ce niveau et type d'exercice
-      const updated = { ...prev };
-      if (!updated.exercises[level]) {
-        updated.exercises[level] = {};
+  // Charger les données au démarrage
+  useEffect(() => {
+    const loadProgressData = async () => {
+      try {
+        const data = await loadData('progressData');
+        if (data) {
+          setProgressData(data);
+        }
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error loading progress data:', error);
+        setIsLoading(false);
       }
-      if (!updated.exercises[level][exerciseType]) {
-        updated.exercises[level][exerciseType] = 0;
+    };
+
+    loadProgressData();
+  }, []);
+
+  // Sauvegarder les données à chaque changement
+  useEffect(() => {
+    if (!isLoading) {
+      saveData('progressData', progressData);
+    }
+  }, [progressData, isLoading]);
+
+  // Mettre à jour la progression d'un exercice spécifique
+  const updateExerciseProgress = (exerciseId, type, level, completed, total) => {
+    // Calculer le pourcentage
+    const percentage = Math.round((completed / total) * 100);
+    
+    // Mise à jour de la dernière activité
+    const lastActivity = {
+      id: exerciseId,
+      type,
+      level,
+      topic: exerciseId.split('_').slice(2).join('_').replace(/_/g, ' '),
+      progress: percentage,
+      date: new Date().toISOString()
+    };
+
+    // Nouvelle progression de l'exercice
+    const updatedExerciseProgress = {
+      ...progressData.exerciseProgress,
+      [exerciseId]: {
+        completed,
+        total,
+        lastAttempt: new Date().toISOString()
       }
-      updated.exercises[level][exerciseType] += amount;
+    };
 
-      // Mettre à jour le progrès global du niveau
-      const levelProgress = Object.values(
-        updated.exercises[level] || {},
-      ).reduce((sum, val) => sum + val, 0);
-      updated.levels[level].completed = Math.min(
-        levelProgress,
-        updated.levels[level].total,
-      );
+    // Nouvelle progression du type d'exercice
+    const exerciseTypeProgressForLevel = {
+      ...progressData.exerciseTypeProgress[level],
+      [type]: percentage
+    };
 
-      return updated;
+    const updatedExerciseTypeProgress = {
+      ...progressData.exerciseTypeProgress,
+      [level]: exerciseTypeProgressForLevel
+    };
+
+    // Calculer la progression globale du niveau
+    const typeProgressValues = Object.values(exerciseTypeProgressForLevel);
+    const levelPercentage = typeProgressValues.length > 0
+      ? Math.round(typeProgressValues.reduce((sum, val) => sum + val, 0) / typeProgressValues.length)
+      : 0;
+
+    const updatedLevelProgress = {
+      ...progressData.levelProgress,
+      [level]: levelPercentage
+    };
+
+    // Mettre à jour l'état
+    setProgressData({
+      lastActivity,
+      levelProgress: updatedLevelProgress,
+      exerciseTypeProgress: updatedExerciseTypeProgress,
+      exerciseProgress: updatedExerciseProgress
     });
   };
 
+  // Valeur exposée par le contexte
+  const value = {
+    progressData,
+    isLoading,
+    updateExerciseProgress
+  };
+
   return (
-    <ProgressContext.Provider value={{ progress, updateProgress }}>
+    <ProgressContext.Provider value={value}>
       {children}
     </ProgressContext.Provider>
   );
 };
+
+
+export const useProgressContext = () => useContext(ProgressContext);
