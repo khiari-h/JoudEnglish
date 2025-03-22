@@ -1,13 +1,8 @@
 // Dashboard/components/LevelProgressModal/index.js
 import React from "react";
-import { 
-  View, 
-  Text, 
-  Modal, 
-  TouchableOpacity, 
-  ScrollView 
-} from "react-native";
+import { View, Text, Modal, Pressable, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import Button from "../../../../ui/Button";
 import styles from "./style";
 
 const LevelProgressModal = ({ visible, levels, onClose, onSelectLevel }) => {
@@ -22,19 +17,23 @@ const LevelProgressModal = ({ visible, levels, onClose, onSelectLevel }) => {
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>My Language Level Progress</Text>
-            <TouchableOpacity
-              style={styles.closeButton}
+            <Button
+              icon={<Ionicons name="close" size={24} color="#6B7280" />}
+              color="transparent"
+              size="small"
               onPress={onClose}
-            >
-              <Ionicons name="close" size={24} color="#6B7280" />
-            </TouchableOpacity>
+              style={styles.closeButton}
+            />
           </View>
 
           <ScrollView style={styles.levelsScrollView}>
             {levels.map((level) => (
-              <TouchableOpacity
+              <Pressable
                 key={level.id}
-                style={styles.levelCard}
+                style={({ pressed }) => [
+                  styles.levelCard,
+                  { opacity: pressed ? 0.9 : 1 },
+                ]}
                 onPress={() => {
                   onClose();
                   onSelectLevel(level.id.toUpperCase());
@@ -60,25 +59,24 @@ const LevelProgressModal = ({ visible, levels, onClose, onSelectLevel }) => {
                   </View>
                 </View>
                 <View
-                  style={[
-                    styles.levelBadge,
-                    { backgroundColor: level.color },
-                  ]}
+                  style={[styles.levelBadge, { backgroundColor: level.color }]}
                 >
                   <Text style={styles.levelBadgeText}>
                     {level.id.toUpperCase()}
                   </Text>
                 </View>
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </ScrollView>
 
-          <TouchableOpacity
-            style={styles.closeModalButton}
+          <Button
+            title="Close"
+            color="#5E60CE"
             onPress={onClose}
-          >
-            <Text style={styles.closeModalButtonText}>Close</Text>
-          </TouchableOpacity>
+            fullWidth={true}
+            style={styles.closeModalButton}
+            textStyle={styles.closeModalButtonText}
+          />
         </View>
       </View>
     </Modal>

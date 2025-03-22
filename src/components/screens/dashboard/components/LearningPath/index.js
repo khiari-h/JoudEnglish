@@ -1,6 +1,7 @@
 // Dashboard/components/LearningPath/index.js
 import React, { useRef, useEffect } from "react";
-import { View, Text, TouchableOpacity, Animated } from "react-native";
+import { View, Text, Animated } from "react-native";
+import Button from "../../../../ui/Button";
 import styles from "./style";
 
 const LearningPath = ({ onSelectLevel, onViewProgress }) => {
@@ -35,9 +36,13 @@ const LearningPath = ({ onSelectLevel, onViewProgress }) => {
     >
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Learning Path</Text>
-        <TouchableOpacity onPress={onSelectLevel}>
-          <Text style={styles.seeAllText}>Select Level</Text>
-        </TouchableOpacity>
+        <Button
+          title="Select Level"
+          variant="text"
+          color={styles.seeAllText?.color || "#5E60CE"}
+          size="small"
+          onPress={onSelectLevel}
+        />
       </View>
 
       <View style={styles.learningPathCard}>
@@ -56,12 +61,14 @@ const LearningPath = ({ onSelectLevel, onViewProgress }) => {
         </View>
       </View>
 
-      <TouchableOpacity
-        style={styles.viewProgressButton}
+      <Button
+        title="View My Progress"
+        variant="outlined"
+        color="#5E60CE"
         onPress={onViewProgress}
-      >
-        <Text style={styles.viewProgressText}>View My Progress</Text>
-      </TouchableOpacity>
+        style={styles.viewProgressButton}
+        textStyle={styles.viewProgressText}
+      />
     </Animated.View>
   );
 };
