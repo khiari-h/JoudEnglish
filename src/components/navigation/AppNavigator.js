@@ -3,19 +3,19 @@ import { createStackNavigator } from "@react-navigation/stack";
 import Dashboard from "../screens/dashboard";
 import LevelSelection from "../screens/LevelSelection";
 import ExerciseSelection from "../screens/ExerciceSelection";
-import VocabularyExercise from "../screens/exercises/VocabularyExercise";
-import GrammarExercise from "../screens/exercises/GrammarExercise";
-import ChatbotWriting from "../screens/exercises/ChatbotWriting";
-import ErrorCorrectionExercise from "../screens/exercises/ErrorCorrectionExercise";
-import PhrasesExpressions from "../screens/exercises/PhrasesExpressions";
-import LevelAssessment from "../screens/exercises/LevelAssessment";
-import ReadingExercise from "../screens/exercises/ReadingExercise";
-import WordGamesExercise from "../screens/exercises/WordGamesExercise";
+import VocabularyExercise from "../screens/Exercises/VocabularyExercise";
+import GrammarExercise from "../screens/Exercises/GrammarExercise";
+import ChatbotWriting from "../screens/Exercises/ChatbotWriting";
+import ErrorCorrectionExercise from "../screens/Exercises/ErrorCorrectionExercise";
+import PhrasesExpressions from "../screens/Exercises/PhrasesExpressions";
+import LevelAssessment from "../screens/Exercises/LevelAssessment";
+import ReadingExercise from "../screens/Exercises/ReadingExercise";
+import WordGamesExercise from "../screens/Exercises/WordGamesExercise";
 
 // Importation des nouveaux composants d'orthographe
-import SpellingSelectionScreen from "../screens/exercises/spelling/spellingSelectionScreen";
-import SpellingRulesPractice from "../screens/exercises/spelling/SpellingRulesPractice";
-import SpellingCorrectionPractice from "../screens/exercises/spelling/spellingCorrectionPractice";
+import SpellingSelectionScreen from "../screens/Exercises/spelling/spellingSelectionScreen";
+import SpellingRulesPractice from "../screens/Exercises/spelling/SpellingRulesPractice";
+import SpellingCorrectionPractice from "../screens/Exercises/spelling/spellingCorrectionPractice";
 
 const Stack = createStackNavigator();
 
