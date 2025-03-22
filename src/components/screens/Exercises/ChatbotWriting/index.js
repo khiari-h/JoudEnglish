@@ -24,7 +24,7 @@ import SuggestionsList from "./components/SuggestionsList";
 import InputArea from "./components/InputArea";
 
 // Styles globaux
-import styles from "./styles";
+import styles from "./style";
 
 /**
  * Composant principal de l'exercice Chatbot Writing

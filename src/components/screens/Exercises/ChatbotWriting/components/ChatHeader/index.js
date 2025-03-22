@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Button from '../../../../../ui/Button';
-import styles from './styles';
+import styles from './style';
 
 /**
  * En-tête du composant ChatbotWriting avec navigation et badge de niveau

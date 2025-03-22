@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import MessageBubble from '../MessageBubble';
 import TypingIndicator from '../TypingIndicator';
-import styles from './styles';
+import styles from './style';
 
 /**
  * Composant affichant la liste des messages de la conversation

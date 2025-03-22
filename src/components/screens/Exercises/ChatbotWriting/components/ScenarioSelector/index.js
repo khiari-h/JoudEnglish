@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import Button from '../../../../../ui/Button';
-import styles from './styles';
+import styles from './style';
 
 /**
  * Composant permettant de sélectionner un scénario de conversation

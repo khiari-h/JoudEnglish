@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import Button from '../../../../../ui/Button';
-import styles from './styles';
+import styles from './style';
 
 /**
  * Composant affichant la description du scénario actuel avec bouton d'aide

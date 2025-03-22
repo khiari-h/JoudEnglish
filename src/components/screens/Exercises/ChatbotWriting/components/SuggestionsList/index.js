@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView } from 'react-native';
 import Button from '../../../../../ui/Button'; 
-import styles from './styles';
+import styles from './style';
 
 /**
  * Composant affichant une liste horizontale de suggestions de messages

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TextInput } from 'react-native';
 import Button from '../../../../../ui/Button';
-import styles from './styles';
+import styles from './style';
 
 /**
  * Composant de zone de saisie pour l'envoi de messages
