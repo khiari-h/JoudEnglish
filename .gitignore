@@ -1,2 +1,2 @@
+node_modules/
 .DS_Store
-echo -e "node_modules/\n.DS_Store" >> .gitignore
