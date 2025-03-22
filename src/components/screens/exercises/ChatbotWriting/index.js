@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, KeyboardAvoidingView, Platform, Alert } from "react-native";
+import {
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 
 // Hooks personnalisés
 import useScenarioData from "./hooks/useScenarioData";
 import useChatLogic from "./hooks/useChatLogic";
-import useExerciseType from "../../../hooks/useExerciseType";
-import { EXERCISE_TYPES } from "../../../constants/exercicesTypes";
+import useExerciseType from "../../../../hooks/useExerciceType";
+import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes";
 
 // Composants
 import ChatHeader from "./components/ChatHeader";
@@ -29,23 +34,20 @@ const ChatbotWriting = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const { level, exerciseId } = route.params || { level: "A1" };
-  
+
   // Hook pour le suivi de progression
-  const { 
-    getExerciseByTopic, 
-    updateExerciseProgress, 
-    generateExerciseId 
-  } = useExerciseType(EXERCISE_TYPES.CHATBOT);
-  
+  const { getExerciseByTopic, updateExerciseProgress, generateExerciseId } =
+    useExerciseType(EXERCISE_TYPES.CHATBOT);
+
   // État local
   const [selectedScenarioIndex, setSelectedScenarioIndex] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
   const [message, setMessage] = useState("");
-  
+
   // Charger les données des scénarios
   const { allScenarios, getLevelColor } = useScenarioData(level);
   const levelColor = getLevelColor(level);
-  
+
   // Utiliser le hook de logique du chat
   const {
     conversation,
@@ -61,40 +63,40 @@ const ChatbotWriting = () => {
     selectedScenarioIndex,
     levelColor,
     message,
-    setMessage
+    setMessage,
   });
-  
+
   // Initialiser si un ID d'exercice spécifique est fourni
   useEffect(() => {
     if (exerciseId && allScenarios.length > 0) {
       // Trouver l'index du scénario correspondant à l'ID
       const scenarioIndex = allScenarios.findIndex(
-        scenario => generateExerciseId(level, scenario.title) === exerciseId
+        (scenario) => generateExerciseId(level, scenario.title) === exerciseId
       );
-      
+
       if (scenarioIndex >= 0) {
         setSelectedScenarioIndex(scenarioIndex);
       }
     }
   }, [exerciseId, allScenarios]);
-  
+
   // Gestion du changement de scénario
   const handleScenarioChange = (index) => {
     if (index !== selectedScenarioIndex) {
       setSelectedScenarioIndex(index);
     }
   };
-  
+
   // Wrapper pour l'envoi de message avec mise à jour de progression
   const handleSendMessage = () => {
     const result = sendMessage();
-    
+
     // Si le message a entraîné la fin de la conversation
     if (result && result.conversationComplete) {
       handleConversationComplete();
     }
   };
-  
+
   // Fonction appelée quand une conversation est terminée
   const handleConversationComplete = () => {
     // Mettre à jour la progression
@@ -102,13 +104,13 @@ const ChatbotWriting = () => {
     if (currentScenario && currentScenario.steps) {
       const totalSteps = currentScenario.steps.length;
       updateExerciseProgress(
-        level, 
-        currentScenario.title, 
+        level,
+        currentScenario.title,
         totalSteps, // completed
-        totalSteps  // total
+        totalSteps // total
       );
     }
-    
+
     // Afficher le message de complétion
     Alert.alert(
       "Conversation terminée",
@@ -133,24 +135,24 @@ const ChatbotWriting = () => {
       ]
     );
   };
-  
+
   // Toggle pour afficher/masquer l'aide
   const toggleHelp = () => {
     setShowHelp(!showHelp);
   };
-  
+
   // Obtenir le scénario actuel
   const currentScenario = allScenarios[selectedScenarioIndex];
 
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* En-tête */}
-      <ChatHeader 
-        level={level} 
-        levelColor={levelColor} 
-        onBack={() => navigation.goBack()} 
+      <ChatHeader
+        level={level}
+        levelColor={levelColor}
+        onBack={() => navigation.goBack()}
       />
-      
+
       {/* Sélecteur de scénarios */}
       <ScenarioSelector
         scenarios={allScenarios}
@@ -158,7 +160,7 @@ const ChatbotWriting = () => {
         onScenarioChange={handleScenarioChange}
         levelColor={levelColor}
       />
-      
+
       {/* Barre de progression */}
       {currentScenario && (
         <ProgressBar
@@ -168,7 +170,7 @@ const ChatbotWriting = () => {
           levelColor={levelColor}
         />
       )}
-      
+
       {/* Description du scénario */}
       {currentScenario && (
         <ScenarioDescription
@@ -178,15 +180,22 @@ const ChatbotWriting = () => {
           levelColor={levelColor}
         />
       )}
-      
+
       {/* Section d'aide */}
-      {showHelp && currentScenario && currentStep < (currentScenario.steps ? currentScenario.steps.length : 0) && (
-        <HelpSection
-          helpText={currentScenario.steps ? currentScenario.steps[currentStep].help : ""}
-          levelColor={levelColor}
-        />
-      )}
-      
+      {showHelp &&
+        currentScenario &&
+        currentStep <
+          (currentScenario.steps ? currentScenario.steps.length : 0) && (
+          <HelpSection
+            helpText={
+              currentScenario.steps
+                ? currentScenario.steps[currentStep].help
+                : ""
+            }
+            levelColor={levelColor}
+          />
+        )}
+
       {/* Conteneur de chat */}
       <KeyboardAvoidingView
         style={styles.chatContainer}
@@ -199,7 +208,7 @@ const ChatbotWriting = () => {
           isTyping={isTyping}
           levelColor={levelColor}
         />
-        
+
         {/* Liste des suggestions */}
         {suggestions.length > 0 && (
           <SuggestionsList
@@ -208,7 +217,7 @@ const ChatbotWriting = () => {
             levelColor={levelColor}
           />
         )}
-        
+
         {/* Zone de saisie */}
         <InputArea
           message={message}

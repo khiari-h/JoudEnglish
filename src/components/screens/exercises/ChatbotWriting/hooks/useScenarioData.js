@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 // Import dynamique des données en fonction du niveau
-import chatbotA1Data from "../../../../data/exercises/chatbot/chatbotA1";
-import chatbotA2Data from "../../../../data/exercises/chatbot/chatbotA2";
-import chatbotB1Data from "../../../../data/exercises/chatbot/chatbotB1";
-import chatbotB2Data from "../../../../data/exercises/chatbot/chatbotB2";
-import chatbotC1Data from "../../../../data/exercises/chatbot/chatbotC1";
-import chatbotC2Data from "../../../../data/exercises/chatbot/chatbotC2";
+import chatbotA1Data from "../../../../../data/exercises/chatbot/chatbotA1";
+import chatbotA2Data from "../../../../../data/exercises/chatbot/chatbotA2";
+import chatbotB1Data from "../../../../../data/exercises/chatbot/chatbotB1";
+import chatbotB2Data from "../../../../../data/exercises/chatbot/chatbotB2";
+import chatbotC1Data from "../../../../../data/exercises/chatbot/chatbotC1";
+import chatbotC2Data from "../../../../../data/exercises/chatbot/chatbotC2";
 
 /**
  * Hook personnalisé pour charger et gérer les données des scénarios
@@ -53,7 +53,7 @@ const useScenarioData = (level) => {
   // Initialiser avec les données appropriées en fonction du niveau
   useEffect(() => {
     const exerciseData = getChatbotData(level);
-    
+
     // Définir tous les scénarios disponibles
     if (exerciseData.exercises && exerciseData.exercises.length > 0) {
       setAllScenarios(exerciseData.exercises);
@@ -67,7 +67,7 @@ const useScenarioData = (level) => {
   return {
     allScenarios,
     getLevelColor,
-    getChatbotData
+    getChatbotData,
   };
 };
 
