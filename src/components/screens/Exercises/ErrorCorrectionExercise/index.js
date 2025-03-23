@@ -11,16 +11,16 @@ import ResultsMode from "./components/ResultsMode";
 import { getLevelColor } from "./utils/levelUtils";
 
 // Import des données d'exercices par niveau
-import errorsA1Data from "../../../data/exercises/errorCorrection/errorCorrectionA1";
-import errorsA2Data from "../../../data/exercises/errorCorrection/errorCorrectionA2";
-import errorsB1Data from "../../../data/exercises/errorCorrection/errorCorrectionB1";
-import errorsB2Data from "../../../data/exercises/errorCorrection/errorCorrectionB2";
-import errorsC1Data from "../../../data/exercises/errorCorrection/errorCorrectionC1";
-import errorsC2Data from "../../../data/exercises/errorCorrection/errorCorrectionC2";
+import errorsA1Data from "../../../../data/exercises/errorCorrection/errorCorrectionA1";
+import errorsA2Data from "../../../../data/exercises/errorCorrection/errorCorrectionA2";
+import errorsB1Data from "../../../../data/exercises/errorCorrection/errorCorrectionB1";
+import errorsB2Data from "../../../../data/exercises/errorCorrection/errorCorrectionB2";
+import errorsC1Data from "../../../../data/exercises/errorCorrection/errorCorrectionC1";
+import errorsC2Data from "../../../../data/exercises/errorCorrection/errorCorrectionC2";
 
 // Import des styles
 import styles from "./style";
-import Button from "../../../components/ui/Button";
+import Button from "../../../ui/Button";
 
 const ErrorCorrectionExercise = () => {
   const navigation = useNavigation();
