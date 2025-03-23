@@ -1,12 +1,7 @@
 import React from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  FlatList,
-} from "react-native";
+import { View, Text, ScrollView, FlatList } from "react-native";
 import styles from "./style";
-import Button from "../../../../../common/Button";
+import Button from "../../../../../ui/Button";
 
 /**
  * Composant pour la navigation et la sélection des exercices
@@ -37,10 +32,12 @@ const BrowseMode = ({
       size="small"
       style={[
         styles.categoryButton,
-        selectedCategory === item.id && { borderColor: levelColor }
+        selectedCategory === item.id && { borderColor: levelColor },
       ]}
       textStyle={
-        selectedCategory === item.id ? { color: levelColor } : { color: "#64748b" }
+        selectedCategory === item.id
+          ? { color: levelColor }
+          : { color: "#64748b" }
       }
     />
   );
@@ -77,7 +74,12 @@ const BrowseMode = ({
           style={[styles.modeCard, { borderColor: levelColor }]}
           textStyle={styles.modeTitle}
           icon={
-            <View style={[styles.modeIconContainer, { backgroundColor: `${levelColor}20` }]}>
+            <View
+              style={[
+                styles.modeIconContainer,
+                { backgroundColor: `${levelColor}20` },
+              ]}
+            >
               <Text style={[styles.modeIcon, { color: levelColor }]}>✏️</Text>
             </View>
           }
@@ -99,7 +101,12 @@ const BrowseMode = ({
           style={[styles.modeCard, { borderColor: levelColor }]}
           textStyle={styles.modeTitle}
           icon={
-            <View style={[styles.modeIconContainer, { backgroundColor: `${levelColor}20` }]}>
+            <View
+              style={[
+                styles.modeIconContainer,
+                { backgroundColor: `${levelColor}20` },
+              ]}
+            >
               <Text style={[styles.modeIcon, { color: levelColor }]}>🔍</Text>
             </View>
           }
@@ -121,7 +128,12 @@ const BrowseMode = ({
           style={[styles.modeCard, { borderColor: levelColor }]}
           textStyle={styles.modeTitle}
           icon={
-            <View style={[styles.modeIconContainer, { backgroundColor: `${levelColor}20` }]}>
+            <View
+              style={[
+                styles.modeIconContainer,
+                { backgroundColor: `${levelColor}20` },
+              ]}
+            >
               <Text style={[styles.modeIcon, { color: levelColor }]}>📝</Text>
             </View>
           }

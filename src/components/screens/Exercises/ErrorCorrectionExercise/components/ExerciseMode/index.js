@@ -1,12 +1,7 @@
 import React from "react";
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  Animated 
-} from "react-native";
+import { View, Text, ScrollView, Animated } from "react-native";
 import styles from "./style";
-import Button from "../../../../../common/Button";
+import Button from "../../../../../ui/Button";
 
 // Import des sous-composants (à implémenter ultérieurement)
 import FullCorrectionView from "../FullCorrectionView";
@@ -17,7 +12,7 @@ import ProgressBar from "../ProgressBar";
 
 /**
  * Composant pour le mode exercice qui gère les différents types d'exercices
- * 
+ *
  * @param {Object} props - Les propriétés du composant
  * @param {Array} props.exercises - Liste des exercices
  * @param {number} props.currentExerciseIndex - Index de l'exercice actuel
@@ -82,7 +77,7 @@ const ExerciseMode = ({
   return (
     <View style={styles.exerciseContainer}>
       {/* Barre de progression */}
-      <ProgressBar 
+      <ProgressBar
         currentIndex={currentExerciseIndex}
         totalCount={exercises.length}
         color={levelColor}
@@ -119,7 +114,7 @@ const ExerciseMode = ({
 
           {/* Contenu spécifique à chaque mode d'exercice */}
           {correctionMode === "full" && (
-            <FullCorrectionView 
+            <FullCorrectionView
               exercise={currentExercise}
               userCorrection={userCorrection}
               setUserCorrection={setUserCorrection}
@@ -129,7 +124,7 @@ const ExerciseMode = ({
           )}
 
           {correctionMode === "identify" && (
-            <IdentifyView 
+            <IdentifyView
               exercise={currentExercise}
               selectedErrorIndices={selectedErrorIndices}
               handleWordPress={handleWordPress}
@@ -139,7 +134,7 @@ const ExerciseMode = ({
           )}
 
           {correctionMode === "multiple_choice" && (
-            <MultipleChoiceView 
+            <MultipleChoiceView
               exercise={currentExercise}
               selectedChoiceIndex={selectedChoiceIndex}
               handleChoiceSelect={handleChoiceSelect}
@@ -175,7 +170,7 @@ const ExerciseMode = ({
 
           {/* Affichage du feedback */}
           {showFeedback && (
-            <FeedbackDisplay 
+            <FeedbackDisplay
               isCorrect={isCorrect}
               correctionMode={correctionMode}
               exercise={currentExercise}
@@ -195,14 +190,20 @@ const ExerciseMode = ({
             fullWidth
             disabled={
               (correctionMode === "full" && userCorrection.trim() === "") ||
-              (correctionMode === "identify" && selectedErrorIndices.length === 0) ||
-              (correctionMode === "multiple_choice" && selectedChoiceIndex === null)
+              (correctionMode === "identify" &&
+                selectedErrorIndices.length === 0) ||
+              (correctionMode === "multiple_choice" &&
+                selectedChoiceIndex === null)
             }
             style={styles.checkButton}
           />
         ) : (
           <Button
-            title={currentExerciseIndex < exercises.length - 1 ? "Next Exercise" : "See Results"}
+            title={
+              currentExerciseIndex < exercises.length - 1
+                ? "Next Exercise"
+                : "See Results"
+            }
             onPress={goToNextExercise}
             color={levelColor}
             size="large"

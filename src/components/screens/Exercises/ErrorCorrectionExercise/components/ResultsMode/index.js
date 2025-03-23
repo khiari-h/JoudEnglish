@@ -1,11 +1,11 @@
 import React from "react";
 import { View, Text, ScrollView } from "react-native";
 import styles from "./style";
-import Button from "../../../../../common/Button";
+import Button from "../../../../../ui/Button";
 
 /**
  * Composant pour l'affichage des résultats après les exercices
- * 
+ *
  * @param {Object} props - Les propriétés du composant
  * @param {Array} props.exercises - Liste des exercices
  * @param {Array} props.userAttempts - Tentatives de l'utilisateur

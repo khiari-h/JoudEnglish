@@ -1,11 +1,11 @@
 import React from "react";
 import { View, FlatList } from "react-native";
 import styles from "./style";
-import Button from "../../../../../common/Button";
+import Button from "../../../../../ui/Button";
 
 /**
  * Composant pour la sélection des catégories d'exercices
- * 
+ *
  * @param {Object} props - Les propriétés du composant
  * @param {Array} props.categories - Liste des catégories disponibles
  * @param {string} props.selectedCategoryId - ID de la catégorie sélectionnée
@@ -28,7 +28,7 @@ const CategorySelector = ({
   // Fonction de rendu pour chaque item de catégorie
   const renderCategoryItem = ({ item }) => {
     const isSelected = selectedCategoryId === item.id;
-    
+
     return (
       <Button
         title={item.name}
@@ -38,10 +38,13 @@ const CategorySelector = ({
         size="small"
         style={[
           styles.categoryButton,
-          isSelected && [styles.selectedCategoryButton, { borderColor: levelColor }]
+          isSelected && [
+            styles.selectedCategoryButton,
+            { borderColor: levelColor },
+          ],
         ]}
         textStyle={
-          isSelected 
+          isSelected
             ? [styles.categoryButtonText, { color: levelColor }]
             : styles.categoryButtonText
         }
