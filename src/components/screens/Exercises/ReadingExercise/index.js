@@ -1,137 +1,154 @@
-import React, { useRef } from "react";
-import { SafeAreaView, ScrollView, View, Text, Animated } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
-
-// Import des hooks personnalisés
-import useReadingExercise from "./hooks/useReadingExercise";
-import useReadingNavigation from "./hooks/useReadingNavigation";
-import useReadingTextInteraction from "./hooks/useReadingTextInteraction";
+// src/components/screens/Exercises/ReadingExercise/index.js
+import React, { useState, useEffect, useRef } from 'react';
+import { View, SafeAreaView, ScrollView, Animated } from 'react-native';
+import { useRoute } from '@react-navigation/native';
 
 // Import des composants
-import ReadingHeader from "./components/ReadingHeader";
-import TextSelector from "./components/TextSelector";
-import ProgressBar from "./components/ProgressBar";
-import ReadingText from "./components/ReadingText";
-import QuestionCard from "./components/QuestionCard";
-import QuestionIndicators from "./components/QuestionIndicators";
-import ActionButtons from "./components/ActionButtons";
-import VocabularyPopup from "./components/VocabularyPopup";
+import ReadingHeader from './components/ReadingHeader';
+import TextSelector from './components/TextSelector';
+import ProgressBar from './components/ProgressBar';
+import ReadingText from './components/ReadingText';
+import QuestionCard from './components/QuestionCard';
+import QuestionIndicators from './components/QuestionIndicators';
+import ActionButtons from './components/ActionButtons';
 
-// Import des utilitaires
-import { getLevelColor } from "./utils/levelUtils";
+// Import des hooks personnalisés
+import { useExerciseState, useAnimations } from '../../../hooks/common';
+import useReadingTextInteraction from './hooks/useReadingTextInteraction';
+import { getReadingDataByLevel } from './utils/dataUtils';
 
 // Import des styles
-import styles from "./style";
+import styles from './style';
 
-const ReadingExercise = () => {
-  const navigation = useNavigation();
+/**
+ * Composant principal pour les exercices de lecture
+ */
+const ReadingExercise = ({ navigation }) => {
   const route = useRoute();
-  const { level } = route.params || { level: "A1" };
+  const { level } = route.params || { level: 'A1' };
   
-  // Références pour le scroll
-  const scrollViewRef = useRef();
-  const textsScrollViewRef = useRef();
+  // Références pour les ScrollViews
+  const scrollViewRef = useRef(null);
+  const textsScrollViewRef = useRef(null);
   
-  // Références pour les animations
-  const fadeAnim = useRef(new Animated.Value(1)).current;
-  const slideAnim = useRef(new Animated.Value(0)).current;
+  // États spécifiques à la lecture
+  const [readingData, setReadingData] = useState([]);
+  const [selectedExerciseIndex, setSelectedExerciseIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
   
-  // Couleur basée sur le niveau
-  const levelColor = getLevelColor(level);
+  // Animations
+  const { fadeAnim, slideAnim, animateIn, resetAnimations } = useAnimations();
   
-  // État et logique des exercices via hooks personnalisés
-  const {
-    allExercises,
-    selectedExerciseIndex,
-    currentExercise,
-    currentQuestionIndex,
-    selectedAnswer,
-    completedQuestions,
-    showFeedback,
-    attempts,
-    isCorrectAnswer,
-    currentQuestion,
-    loading,
-    setSelectedAnswer,
-    calculateProgress,
-    handleSelectAnswer,
-    handleSubmitAnswer,
-    retryExercise,
-    isCurrentQuestionCompleted,
-  } = useReadingExercise(level);
+  // Charger les données de lecture
+  useEffect(() => {
+    const data = getReadingDataByLevel(level);
+    setReadingData(data);
+  }, [level]);
   
-  // Logique de navigation
-  const {
-    handleGoBack,
-    handleTextChange,
-    handleNextQuestion,
-    handlePreviousQuestion,
-    handleQuestionSelect,
-    canGoPrevious,
-    isLastQuestion,
-  } = useReadingNavigation({
-    navigation,
-    fadeAnim,
-    slideAnim,
-    scrollViewRef,
-    textsScrollViewRef,
-    selectedExerciseIndex,
-    currentExerciseIndex: currentQuestionIndex,
-    allExercises,
-    completedQuestions,
-    isCorrectAnswer
-  });
+  // Obtenir l'exercice de lecture actuel
+  const currentExercise = readingData[selectedExerciseIndex] || { questions: [] };
   
-  // Interactions avec le texte
+  // Interactions avec le texte de lecture
   const {
     textExpanded,
-    toggleTextExpansion,
     highlightedWord,
+    toggleTextExpansion,
     handleWordPress,
     closeVocabularyPopup,
+    wordHasDefinition
   } = useReadingTextInteraction({
     scrollViewRef,
     currentExercise
   });
   
-  // Affichage de chargement
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading exercise...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  // Fonction personnalisée pour vérifier les réponses
+  const checkReadingAnswer = (userAnswer, question) => {
+    return userAnswer === question.correctAnswer;
+  };
   
-  // Calcul de la progression
-  const progress = calculateProgress();
-  const totalQuestions = currentExercise?.questions.length || 0;
+  // Utiliser le hook générique d'exercice
+  const {
+    currentIndex: currentQuestionIndex,
+    setCurrentIndex: setCurrentQuestionIndex,
+    currentExercise: currentQuestion,
+    showFeedback,
+    isCorrect,
+    attempts,
+    userAnswer: storedUserAnswer,
+    setUserAnswer,
+    progress,
+    levelColor,
+    isLastExercise: isLastQuestion,
+    checkAnswer,
+    retryExercise,
+    resetExerciseState,
+    goToNext: goToNextQuestion,
+    goToPrevious: goToPreviousQuestion,
+    handleGoBack,
+    canGoToNext,
+    canGoToPrevious,
+    canCheckAnswer
+  } = useExerciseState({
+    type: 'reading',
+    level,
+    exercises: currentExercise.questions,
+    navigation,
+    checkAnswerFn: checkReadingAnswer
+  });
   
+  // Réinitialiser l'animation quand la question change
+  useEffect(() => {
+    resetAnimations();
+    animateIn();
+    setSelectedAnswer(null);
+  }, [currentQuestionIndex, selectedExerciseIndex, resetAnimations, animateIn]);
+  
+  // Mise à jour de la réponse utilisateur
+  useEffect(() => {
+    setUserAnswer(selectedAnswer);
+  }, [selectedAnswer, setUserAnswer]);
+  
+  // Changer de texte de lecture
+  const handleTextChange = (index) => {
+    if (index !== selectedExerciseIndex) {
+      setSelectedExerciseIndex(index);
+      setCurrentQuestionIndex(0);
+      setSelectedAnswer(null);
+      resetExerciseState();
+      
+      if (textsScrollViewRef.current) {
+        textsScrollViewRef.current.scrollTo({
+          x: index * 110, // Approximation de la largeur de chaque bouton
+          animated: true,
+        });
+      }
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* En-tête */}
       <ReadingHeader
         level={level}
         levelColor={levelColor}
-        onGoBack={handleGoBack}
+        navigation={navigation}
+        title={currentExercise.title || "Reading Exercise"}
       />
       
       {/* Sélecteur de textes */}
       <TextSelector
-        exercises={allExercises}
-        selectedExerciseIndex={selectedExerciseIndex}
+        texts={readingData}
+        selectedIndex={selectedExerciseIndex}
         onSelectText={handleTextChange}
-        scrollViewRef={textsScrollViewRef}
         levelColor={levelColor}
+        scrollViewRef={textsScrollViewRef}
       />
       
       {/* Barre de progression */}
       <ProgressBar
         progress={progress}
-        completedQuestions={completedQuestions[selectedExerciseIndex]?.length || 0}
-        totalQuestions={totalQuestions}
+        completedQuestions={currentQuestionIndex}
+        totalQuestions={currentExercise.questions?.length || 0}
         levelColor={levelColor}
       />
       
@@ -140,35 +157,48 @@ const ReadingExercise = () => {
         ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
       >
-        {/* Section du texte */}
+        {/* Texte de lecture */}
         <ReadingText
-          exercise={currentExercise}
+          text={currentExercise.text}
           expanded={textExpanded}
-          onToggleExpand={toggleTextExpansion}
+          onToggleExpansion={toggleTextExpansion}
           onWordPress={handleWordPress}
+          wordHasDefinition={wordHasDefinition}
+          highlightedWord={highlightedWord}
+          onCloseVocabularyPopup={closeVocabularyPopup}
           levelColor={levelColor}
         />
         
-        {/* Section de question */}
-        <QuestionCard
-          question={currentQuestion}
-          questionIndex={currentQuestionIndex}
-          selectedAnswer={selectedAnswer}
-          onSelectAnswer={handleSelectAnswer}
-          showFeedback={showFeedback}
-          isCorrect={isCorrectAnswer}
-          attempts={attempts}
-          fadeAnim={fadeAnim}
-          slideAnim={slideAnim}
-        />
+        {/* Question actuelle */}
+        <Animated.View
+          style={[
+            styles.questionWrapper,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+        >
+          {currentQuestion && (
+            <QuestionCard
+              question={currentQuestion}
+              selectedAnswer={selectedAnswer}
+              onSelectAnswer={setSelectedAnswer}
+              showFeedback={showFeedback}
+              isCorrect={isCorrect}
+              levelColor={levelColor}
+            />
+          )}
+        </Animated.View>
         
         {/* Indicateurs de questions */}
         <QuestionIndicators
-          totalQuestions={totalQuestions}
+          totalQuestions={currentExercise.questions?.length || 0}
           currentIndex={currentQuestionIndex}
-          completedQuestions={completedQuestions[selectedExerciseIndex] || []}
-          onSelectQuestion={handleQuestionSelect}
+          completedQuestions={[]}
+          onSelectQuestion={setCurrentQuestionIndex}
           levelColor={levelColor}
         />
       </ScrollView>
@@ -177,21 +207,15 @@ const ReadingExercise = () => {
       <ActionButtons
         showFeedback={showFeedback}
         selectedAnswer={selectedAnswer}
-        isCorrect={isCorrectAnswer}
+        isCorrect={isCorrect}
         attempts={attempts}
-        canGoPrevious={canGoPrevious}
+        canGoPrevious={canGoToPrevious}
         isLastQuestion={isLastQuestion}
-        onSubmit={handleSubmitAnswer}
-        onNext={handleNextQuestion}
-        onPrevious={handlePreviousQuestion}
+        onSubmit={checkAnswer}
+        onNext={goToNextQuestion}
+        onPrevious={goToPreviousQuestion}
         onRetry={retryExercise}
         levelColor={levelColor}
-      />
-      
-      {/* Popup de vocabulaire */}
-      <VocabularyPopup
-        word={highlightedWord}
-        onClose={closeVocabularyPopup}
       />
     </SafeAreaView>
   );

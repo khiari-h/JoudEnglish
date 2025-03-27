@@ -1,6 +1,7 @@
 // components/common/AnimatedCard/index.js
-import React, { useRef, useEffect } from "react";
+import React, { useEffect } from "react";
 import { View, Animated } from "react-native";
+import { useAnimations } from '../../../hooks/common';
 import styles from "./style";
 
 const AnimatedCard = ({ 
@@ -10,67 +11,55 @@ const AnimatedCard = ({
   duration = 800,
   animationType = "fadeUp" // Options: 'fadeUp', 'fadeIn', 'scaleIn'
 }) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const translateYAnim = useRef(new Animated.Value(50)).current;
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const { 
+    fadeAnim, 
+    slideAnim, 
+    scaleAnim,
+    fadeIn,
+    slideIn,
+    scaleIn,
+    animatedStyles
+  } = useAnimations({
+    initialValues: { 
+      fade: 0, 
+      slide: animationType === 'fadeUp' ? 50 : 0, 
+      scale: animationType === 'scaleIn' ? 0.9 : 1 
+    },
+    config: { duration }
+  });
 
   useEffect(() => {
-    let animations = [];
+    // Déclencher l'animation appropriée après le délai
+    const timer = setTimeout(() => {
+      if (animationType === 'fadeUp') {
+        fadeIn();
+        slideIn();
+      } else if (animationType === 'fadeIn') {
+        fadeIn();
+      } else if (animationType === 'scaleIn') {
+        fadeIn();
+        scaleIn();
+      }
+    }, delay);
 
-    if (animationType === 'fadeUp') {
-      animations = [
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: duration,
-          delay: delay,
-          useNativeDriver: true,
-        }),
-        Animated.timing(translateYAnim, {
-          toValue: 0,
-          duration: duration,
-          delay: delay,
-          useNativeDriver: true,
-        }),
-      ];
-    } else if (animationType === 'fadeIn') {
-      animations = [
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: duration,
-          delay: delay,
-          useNativeDriver: true,
-        }),
-      ];
-    } else if (animationType === 'scaleIn') {
-      animations = [
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: duration,
-          delay: delay,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 1,
-          duration: duration,
-          delay: delay,
-          useNativeDriver: true,
-        }),
-      ];
-    }
+    return () => clearTimeout(timer);
+  }, [animationType, delay, fadeIn, slideIn, scaleIn]);
 
-    Animated.parallel(animations).start();
-  }, []);
-
+  // Obtenir le style d'animation approprié
   const getAnimatedStyle = () => {
-    let animatedStyle = { opacity: fadeAnim };
-
     if (animationType === 'fadeUp') {
-      animatedStyle.transform = [{ translateY: translateYAnim }];
+      return {
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }],
+      };
     } else if (animationType === 'scaleIn') {
-      animatedStyle.transform = [{ scale: scaleAnim }];
+      return {
+        opacity: fadeAnim,
+        transform: [{ scale: scaleAnim }],
+      };
+    } else {
+      return { opacity: fadeAnim };
     }
-
-    return animatedStyle;
   };
 
   return (
@@ -81,4 +70,3 @@ const AnimatedCard = ({
 };
 
 export default AnimatedCard;
-

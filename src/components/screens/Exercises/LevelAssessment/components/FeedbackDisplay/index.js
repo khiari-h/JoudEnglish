@@ -1,32 +1,22 @@
+// src/components/screens/Exercises/GrammarExercise/components/FeedbackDisplay/index.js
 import React from 'react';
-import { View, Text } from 'react-native';
-import styles from './style';
+import ExerciseFeedback from '../../../../../common/ExerciseFeedback';
 
-/**
- * Composant pour afficher le feedback après une réponse
- * 
- * @param {Object} props - Les propriétés du composant
- * @param {boolean} props.isCorrect - Indique si la réponse est correcte
- * @param {string} props.explanation - Explication de la réponse (optionnel)
- */
 const FeedbackDisplay = ({
   isCorrect,
-  explanation,
+  exercise,
+  attempts,
+  levelColor,
 }) => {
   return (
-    <View style={styles.feedbackContainer}>
-      <Text style={styles.feedbackText}>
-        {isCorrect
-          ? "Correct! Great job."
-          : "Oops! The correct answer is different."}
-      </Text>
-      
-      {explanation && (
-        <Text style={styles.explanationText}>
-          {explanation}
-        </Text>
-      )}
-    </View>
+    <ExerciseFeedback
+      isCorrect={isCorrect}
+      explanation={isCorrect ? exercise.correctFeedback : exercise.incorrectFeedback}
+      hint={!isCorrect ? exercise.hint : undefined}
+      attempts={attempts}
+      style={{ marginHorizontal: 20, marginTop: 16 }}
+      animationType="fadeIn"
+    />
   );
 };
 

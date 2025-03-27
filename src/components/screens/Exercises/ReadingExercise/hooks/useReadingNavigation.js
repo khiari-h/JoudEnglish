@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { Animated } from 'react-native';
+import { useNavigationControls } from '../common';
 
 /**
  * Hook personnalisé pour gérer la navigation dans les exercices de lecture
@@ -12,6 +13,7 @@ import { Animated } from 'react-native';
  * @param {Object} params.textsScrollViewRef - Référence au ScrollView des textes
  * @param {number} params.selectedExerciseIndex - Index de l'exercice sélectionné
  * @param {number} params.currentExerciseIndex - Index de la question actuelle
+ * @param {Function} params.setCurrentExerciseIndex - Fonction pour définir l'index de la question
  * @param {Array} params.allExercises - Liste des exercices
  * @param {Object} params.completedQuestions - Questions complétées
  * @param {boolean} params.isCorrectAnswer - Si la réponse actuelle est correcte
@@ -25,14 +27,58 @@ const useReadingNavigation = ({
   textsScrollViewRef,
   selectedExerciseIndex,
   currentExerciseIndex,
+  setCurrentExerciseIndex,
   allExercises,
   completedQuestions,
   isCorrectAnswer
 }) => {
-  // Retour à l'écran précédent
-  const handleGoBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  // Animation de transition entre questions
+  const animateQuestionTransition = useCallback(() => {
+    fadeAnim.setValue(0);
+    slideAnim.setValue(50);
+    
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    
+    // Scroll to top
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ x: 0, y: 0, animated: true });
+    }
+  }, [fadeAnim, slideAnim, scrollViewRef]);
+  
+  // Fonction pour gérer la fin d'un texte (toutes les questions)
+  const handleExerciseComplete = useCallback(() => {
+    // Ici on pourrait gérer ce qui se passe quand on a terminé toutes les questions
+    // Par exemple, afficher des résultats, ou passer au texte suivant
+    // Pour l'instant, on ne fait rien de spécial
+  }, []);
+  
+  // Utiliser le hook générique pour la navigation de base
+  const {
+    goToNext,
+    goToPrevious,
+    handleGoBack,
+    canGoToNext,
+    canGoToPrevious,
+    isLastItem
+  } = useNavigationControls({
+    navigation,
+    currentIndex: currentExerciseIndex,
+    totalItems: allExercises[selectedExerciseIndex]?.questions?.length || 0,
+    setCurrentIndex: setCurrentExerciseIndex,
+    resetState: animateQuestionTransition,
+    onComplete: handleExerciseComplete
+  });
   
   // Changer de texte sélectionné
   const handleTextChange = useCallback((index) => {
@@ -81,70 +127,16 @@ const useReadingNavigation = ({
     }
     return currentExerciseIndex;
   }, [currentExerciseIndex, fadeAnim, slideAnim, scrollViewRef]);
-  
-  // Animation de transition entre questions
-  const animateQuestionTransition = useCallback(() => {
-    fadeAnim.setValue(0);
-    slideAnim.setValue(50);
-    
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [fadeAnim, slideAnim]);
-  
-  // Aller à la question suivante
-  const handleNextQuestion = useCallback(() => {
-    const currentExercise = allExercises[selectedExerciseIndex];
-    if (!currentExercise) return;
-    
-    // Vérifier si c'est la dernière question
-    const isLastQuestion = currentExerciseIndex >= currentExercise.questions.length - 1;
-    
-    if (!isLastQuestion) {
-      // Aller à la question suivante
-      animateQuestionTransition();
-      return currentExerciseIndex + 1;
-    } else {
-      // Comportement de fin d'exercice
-      // Note: La logique complète de fin d'exercice est gérée par le composant
-      return currentExerciseIndex;
-    }
-  }, [allExercises, selectedExerciseIndex, currentExerciseIndex, animateQuestionTransition]);
-  
-  // Aller à la question précédente
-  const handlePreviousQuestion = useCallback(() => {
-    if (currentExerciseIndex > 0) {
-      // Animer la transition
-      animateQuestionTransition();
-      return currentExerciseIndex - 1;
-    }
-    return currentExerciseIndex;
-  }, [currentExerciseIndex, animateQuestionTransition]);
-  
-  // Vérifier si on peut aller à la question précédente
-  const canGoPrevious = currentExerciseIndex > 0;
-  
-  // Vérifier si c'est la dernière question
-  const isLastQuestion = allExercises[selectedExerciseIndex]?.questions.length - 1 === currentExerciseIndex;
-  
+
   return {
     handleGoBack,
     handleTextChange,
     handleQuestionSelect,
-    handleNextQuestion,
-    handlePreviousQuestion,
+    handleNextQuestion: goToNext,
+    handlePreviousQuestion: goToPrevious,
     animateQuestionTransition,
-    canGoPrevious,
-    isLastQuestion
+    canGoPrevious: canGoToPrevious,
+    isLastQuestion: isLastItem
   };
 };
 

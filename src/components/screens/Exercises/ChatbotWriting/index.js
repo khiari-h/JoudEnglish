@@ -1,231 +1,182 @@
-import React, { useState, useEffect } from "react";
-import {
-  SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from "react-native";
-import { useRoute, useNavigation } from "@react-navigation/native";
+// src/components/screens/Exercises/ChatbotWriting/index.js
+import React, { useState, useEffect, useRef } from 'react';
+import { View, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { useRoute } from '@react-navigation/native';
 
-// Hooks personnalisés
-import useScenarioData from "./hooks/useScenarioData";
-import useChatLogic from "./hooks/useChatLogic";
-import useExerciseType from "../../../../hooks/useExerciceType";
-import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes";
+// Import des composants
+import ChatHeader from './components/ChatHeader';
+import ProgressBar from './components/ProgressBar';
+import MessageList from './components/MessageList';
+import SuggestionsList from './components/SuggestionsList';
+import InputArea from './components/InputArea';
+import ScenarioSelector from './components/ScenarioSelector';
+import ScenarioDescription from './components/ScenarioDescription';
+import HelpSection from './components/HelpSection';
 
-// Composants
-import ChatHeader from "./components/ChatHeader";
-import ScenarioSelector from "./components/ScenarioSelector";
-import ProgressBar from "./components/ProgressBar";
-import ScenarioDescription from "./components/ScenarioDescription";
-import HelpSection from "./components/HelpSection";
-import MessageList from "./components/MessageList";
-import SuggestionsList from "./components/SuggestionsList";
-import InputArea from "./components/InputArea";
+// Import des hooks personnalisés
+import { useExerciseState } from '../../../hooks/common';
+import useChatLogic from './hooks/useChatLogic';
+import { getChatScenariosByLevel } from './utils/dataUtils';
 
-// Styles globaux
-import styles from "./style";
+// Import des styles
+import styles from './style';
 
-/**
- * Composant principal de l'exercice Chatbot Writing
- * Permet à l'utilisateur de pratiquer l'écriture en simulant une conversation
- */
-const ChatbotWriting = () => {
+const ChatbotWriting = ({ navigation }) => {
   const route = useRoute();
-  const navigation = useNavigation();
-  const { level, exerciseId } = route.params || { level: "A1" };
-
-  // Hook pour le suivi de progression
-  const { getExerciseByTopic, updateExerciseProgress, generateExerciseId } =
-    useExerciseType(EXERCISE_TYPES.CHATBOT);
-
-  // État local
+  const { level } = route.params || { level: 'A1' };
+  
+  // États spécifiques au chatbot
+  const [scenariosData, setScenariosData] = useState([]);
   const [selectedScenarioIndex, setSelectedScenarioIndex] = useState(0);
-  const [showHelp, setShowHelp] = useState(false);
-  const [message, setMessage] = useState("");
-
+  const [mode, setMode] = useState('selector'); // 'selector', 'chat', 'help'
+  const [messageText, setMessageText] = useState('');
+  
+  // Référence pour le scroll des messages
+  const messagesScrollRef = useRef(null);
+  
   // Charger les données des scénarios
-  const { allScenarios, getLevelColor } = useScenarioData(level);
-  const levelColor = getLevelColor(level);
-
-  // Utiliser le hook de logique du chat
-  const {
-    conversation,
-    isTyping,
-    suggestions,
-    currentStep,
-    completionProgress,
-    handleSendMessage: sendMessage,
-    handleSuggestionPress,
-    startConversation,
-  } = useChatLogic({
-    allScenarios,
-    selectedScenarioIndex,
-    levelColor,
-    message,
-    setMessage,
-  });
-
-  // Initialiser si un ID d'exercice spécifique est fourni
   useEffect(() => {
-    if (exerciseId && allScenarios.length > 0) {
-      // Trouver l'index du scénario correspondant à l'ID
-      const scenarioIndex = allScenarios.findIndex(
-        (scenario) => generateExerciseId(level, scenario.title) === exerciseId
-      );
-
-      if (scenarioIndex >= 0) {
-        setSelectedScenarioIndex(scenarioIndex);
-      }
-    }
-  }, [exerciseId, allScenarios]);
-
-  // Gestion du changement de scénario
-  const handleScenarioChange = (index) => {
-    if (index !== selectedScenarioIndex) {
-      setSelectedScenarioIndex(index);
-    }
-  };
-
-  // Wrapper pour l'envoi de message avec mise à jour de progression
+    const data = getChatScenariosByLevel(level);
+    setScenariosData(data);
+  }, [level]);
+  
+  // Scénario actuel
+  const currentScenario = scenariosData[selectedScenarioIndex] || null;
+  
+  // Logique de chat
+  const {
+    messages,
+    suggestions,
+    isTyping,
+    currentTask,
+    sendMessage,
+    useSuggestion,
+    checkTaskCompletion
+  } = useChatLogic(currentScenario);
+  
+  // Utiliser le hook générique d'exercice pour les tâches du scénario
+  const {
+    currentIndex: currentTaskIndex,
+    setCurrentIndex: setCurrentTaskIndex,
+    progress,
+    levelColor,
+    isLastExercise: isLastTask,
+    goToNext: goToNextTask,
+    handleGoBack
+  } = useExerciseState({
+    type: 'chatbot',
+    level,
+    exercises: currentScenario?.tasks || [],
+    navigation
+  });
+  
+  // Envoyer un message
   const handleSendMessage = () => {
-    const result = sendMessage();
-
-    // Si le message a entraîné la fin de la conversation
-    if (result && result.conversationComplete) {
-      handleConversationComplete();
+    if (!messageText.trim()) return;
+    
+    sendMessage(messageText);
+    setMessageText('');
+    
+    // Vérifier si cette message complète la tâche actuelle
+    const taskCompleted = checkTaskCompletion(messageText, currentTaskIndex);
+    if (taskCompleted && !isLastTask) {
+      // Passer à la tâche suivante après un délai
+      setTimeout(() => {
+        goToNextTask();
+      }, 1500);
     }
   };
-
-  // Fonction appelée quand une conversation est terminée
-  const handleConversationComplete = () => {
-    // Mettre à jour la progression
-    const currentScenario = allScenarios[selectedScenarioIndex];
-    if (currentScenario && currentScenario.steps) {
-      const totalSteps = currentScenario.steps.length;
-      updateExerciseProgress(
-        level,
-        currentScenario.title,
-        totalSteps, // completed
-        totalSteps // total
-      );
-    }
-
-    // Afficher le message de complétion
-    Alert.alert(
-      "Conversation terminée",
-      "Félicitations ! Vous avez terminé cette conversation.",
-      [
-        {
-          text: "Essayer un autre scénario",
-          onPress: () => {
-            if (selectedScenarioIndex < allScenarios.length - 1) {
-              setSelectedScenarioIndex(selectedScenarioIndex + 1);
-            } else {
-              setSelectedScenarioIndex(0);
-            }
-          },
-          style: "default",
-        },
-        {
-          text: "Réessayer",
-          onPress: () => startConversation(),
-          style: "cancel",
-        },
-      ]
-    );
+  
+  // Sélectionner un scénario
+  const handleSelectScenario = (index) => {
+    setSelectedScenarioIndex(index);
+    setMode('chat');
   };
-
-  // Toggle pour afficher/masquer l'aide
-  const toggleHelp = () => {
-    setShowHelp(!showHelp);
+  
+  // Revenir à la sélection de scénario
+  const handleBackToScenarios = () => {
+    setMode('selector');
   };
-
-  // Obtenir le scénario actuel
-  const currentScenario = allScenarios[selectedScenarioIndex];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* En-tête */}
-      <ChatHeader
-        level={level}
-        levelColor={levelColor}
-        onBack={() => navigation.goBack()}
-      />
-
-      {/* Sélecteur de scénarios */}
-      <ScenarioSelector
-        scenarios={allScenarios}
-        selectedIndex={selectedScenarioIndex}
-        onScenarioChange={handleScenarioChange}
-        levelColor={levelColor}
-      />
-
-      {/* Barre de progression */}
-      {currentScenario && (
-        <ProgressBar
-          progress={completionProgress}
-          currentStep={currentStep}
-          totalSteps={currentScenario.steps ? currentScenario.steps.length : 0}
+    <SafeAreaView style={styles.container}>
+      {/* Mode sélecteur de scénario */}
+      {mode === 'selector' && (
+        <ScenarioSelector
+          scenarios={scenariosData}
+          onSelectScenario={handleSelectScenario}
+          level={level}
+          levelColor={levelColor}
+          onGoBack={handleGoBack}
+        />
+      )}
+      
+      {/* Mode aide */}
+      {mode === 'help' && (
+        <HelpSection
+          onBack={() => setMode('chat')}
           levelColor={levelColor}
         />
       )}
-
-      {/* Description du scénario */}
-      {currentScenario && (
-        <ScenarioDescription
-          description={currentScenario.description}
-          showHelp={showHelp}
-          toggleHelp={toggleHelp}
-          levelColor={levelColor}
-        />
+      
+      {/* Mode chat */}
+      {mode === 'chat' && currentScenario && (
+        <>
+          {/* En-tête du chat */}
+          <ChatHeader
+            title={currentScenario.title}
+            level={level}
+            levelColor={levelColor}
+            onBack={handleBackToScenarios}
+            onHelp={() => setMode('help')}
+          />
+          
+          {/* Barre de progression */}
+          <ProgressBar
+            progress={progress}
+            levelColor={levelColor}
+          />
+          
+          {/* Description du scénario */}
+          <ScenarioDescription
+            scenario={currentScenario}
+            currentTask={currentTask}
+            levelColor={levelColor}
+          />
+          
+          {/* Zone principale de chat */}
+          <KeyboardAvoidingView
+            style={styles.chatContainer}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+          >
+            {/* Liste des messages */}
+            <MessageList
+              messages={messages}
+              isTyping={isTyping}
+              scrollRef={messagesScrollRef}
+              levelColor={levelColor}
+            />
+            
+            {/* Suggestions */}
+            {suggestions.length > 0 && (
+              <SuggestionsList
+                suggestions={suggestions}
+                onSuggestionPress={useSuggestion}
+                levelColor={levelColor}
+              />
+            )}
+            
+            {/* Zone de saisie */}
+            <InputArea
+              value={messageText}
+              onChangeText={setMessageText}
+              onSend={handleSendMessage}
+              levelColor={levelColor}
+            />
+          </KeyboardAvoidingView>
+        </>
       )}
-
-      {/* Section d'aide */}
-      {showHelp &&
-        currentScenario &&
-        currentStep <
-          (currentScenario.steps ? currentScenario.steps.length : 0) && (
-          <HelpSection
-            helpText={
-              currentScenario.steps
-                ? currentScenario.steps[currentStep].help
-                : ""
-            }
-            levelColor={levelColor}
-          />
-        )}
-
-      {/* Conteneur de chat */}
-      <KeyboardAvoidingView
-        style={styles.chatContainer}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-      >
-        {/* Liste des messages */}
-        <MessageList
-          conversation={conversation}
-          isTyping={isTyping}
-          levelColor={levelColor}
-        />
-
-        {/* Liste des suggestions */}
-        {suggestions.length > 0 && (
-          <SuggestionsList
-            suggestions={suggestions}
-            onSuggestionPress={handleSuggestionPress}
-            levelColor={levelColor}
-          />
-        )}
-
-        {/* Zone de saisie */}
-        <InputArea
-          message={message}
-          setMessage={setMessage}
-          onSendMessage={handleSendMessage}
-          levelColor={levelColor}
-        />
-      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

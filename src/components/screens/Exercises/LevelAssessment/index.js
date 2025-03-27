@@ -1,120 +1,221 @@
-import React, { useRef } from "react";
-import {
-  View,
-  ScrollView,
-  SafeAreaView,
-  Animated,
-} from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
-
-// Import des hooks personnalisés
-import useAssessment from "./hooks/useAssessment";
-import useAssessmentNavigation from "./hooks/useAssessmentNavigation";
+// src/components/screens/Exercises/LevelAssessment/index.js
+import React, { useState, useEffect } from 'react';
+import { View, SafeAreaView, ScrollView } from 'react-native';
+import { useRoute } from '@react-navigation/native';
 
 // Import des composants
-import AssessmentHeader from "./components/AssessmentHeader";
-import QuestionCard from "./components/QuestionCard";
-import ActionButtons from "./components/ActionButtons";
-import ResultsScreen from "./components/ResultsScreen";
+import AssessmentHeader from './components/AssessmentHeader';
+import ProgressBar from './components/ProgressBar';
+import QuestionCard from './components/QuestionCard';
+import AnswerOptions from './components/AnswerOptions';
+import FeedbackDisplay from './components/FeedbackDisplay';
+import ActionButtons from './components/ActionButtons';
+import ResultsScreen from './components/ResultsScreen';
 
-// Import des utilitaires
-import { getLevelColor } from "./utils/levelUtils";
+// Import des hooks personnalisés
+import { useExerciseState, useAnimations } from '../../../hooks/common';
+import { getAssessmentDataByLevel } from './utils/levelUtils';
 
 // Import des styles
-import styles from "./style";
+import styles from './style';
 
-const LevelAssessment = () => {
-  const navigation = useNavigation();
+/**
+ * Composant principal pour l'évaluation de niveau
+ */
+const LevelAssessment = ({ navigation }) => {
   const route = useRoute();
-  const { level } = route.params || { level: "A1" };
+  const { level } = route.params || { level: 'A1' };
   
-  // Référence pour les animations
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+  // États spécifiques à l'évaluation
+  const [assessmentData, setAssessmentData] = useState({ sections: [] });
+  const [currentSection, setCurrentSection] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [scores, setScores] = useState({});
   
-  // Obtenir la couleur du niveau
-  const levelColor = getLevelColor(level);
+  // Animations
+  const { fadeAnim, animateIn, resetAnimations } = useAnimations();
   
-  // État et logique de l'évaluation via hooks personnalisés
+  // Charger les données d'évaluation
+  useEffect(() => {
+    const data = getAssessmentDataByLevel(level);
+    setAssessmentData(data);
+  }, [level]);
+  
+  // Obtenir les questions de la section actuelle
+  const currentSectionData = assessmentData.sections[currentSection] || { questions: [] };
+  
+  // Fonction personnalisée pour vérifier les réponses
+  const checkAssessmentAnswer = (userAnswer, question) => {
+    return userAnswer === question.correctAnswer;
+  };
+  
+  // Fonction pour passer à la section suivante
+  const handleSectionComplete = () => {
+    if (currentSection < assessmentData.sections.length - 1) {
+      // Passer à la section suivante
+      setCurrentSection(currentSection + 1);
+      setCurrentQuestionIndex(0);
+      resetExerciseState();
+      setSelectedAnswer(null);
+    } else {
+      // Toutes les sections sont terminées, afficher les résultats
+      setShowResults(true);
+    }
+  };
+  
+  // Utiliser le hook générique d'exercice
   const {
-    currentSection,
-    currentQuestionIndex,
-    selectedAnswer,
+    currentIndex: currentQuestionIndex,
+    setCurrentIndex: setCurrentQuestionIndex,
+    currentExercise: currentQuestion,
     showFeedback,
-    testCompleted,
-    currentSectionData,
-    currentQuestion,
-    setSelectedAnswer,
-    validateAnswer,
-    isLastQuestion,
-    isLastSection,
-  } = useAssessment(level);
-  
-  // Logique de navigation entre questions et sections
-  const {
+    isCorrect,
+    attempts,
+    userAnswer: storedUserAnswer,
+    setUserAnswer,
+    completedItems,
+    progress,
+    levelColor,
+    isLastExercise: isLastQuestion,
+    checkAnswer,
+    retryExercise,
+    resetExerciseState,
+    goToNext,
+    goToPrevious,
     handleGoBack,
-    tryAgain,
-    goToNextQuestion,
-    animateFeedback,
-  } = useAssessmentNavigation({
+    canGoToNext,
+    canGoToPrevious,
+    canCheckAnswer
+  } = useExerciseState({
+    type: 'assessment',
+    level,
+    exercises: currentSectionData.questions,
     navigation,
-    fadeAnim,
-    currentSection,
-    currentQuestionIndex,
-    showFeedback,
-    selectedAnswer,
+    checkAnswerFn: checkAssessmentAnswer,
+    onComplete: handleSectionComplete
   });
   
-  // Si le test est terminé, afficher les écran de résultats
-  if (testCompleted) {
+  // Mettre à jour le score quand une réponse est correcte
+  useEffect(() => {
+    if (showFeedback && isCorrect) {
+      setScores(prevScores => {
+        const sectionScores = prevScores[currentSection] || [];
+        sectionScores[currentQuestionIndex] = true;
+        return {
+          ...prevScores,
+          [currentSection]: sectionScores
+        };
+      });
+    }
+  }, [showFeedback, isCorrect, currentSection, currentQuestionIndex]);
+  
+  // Mettre à jour la réponse utilisateur
+  useEffect(() => {
+    setUserAnswer(selectedAnswer);
+  }, [selectedAnswer, setUserAnswer]);
+  
+  // Réinitialiser l'animation quand la question change
+  useEffect(() => {
+    resetAnimations();
+    animateIn();
+    setSelectedAnswer(null);
+  }, [currentQuestionIndex, currentSection, resetAnimations, animateIn]);
+  
+  // Calculer le score total
+  const calculateTotalScore = () => {
+    let correct = 0;
+    let total = 0;
+    
+    Object.values(scores).forEach(sectionScores => {
+      correct += sectionScores.filter(Boolean).length;
+      total += sectionScores.length;
+    });
+    
+    return {
+      correct,
+      total,
+      percentage: total > 0 ? Math.round((correct / total) * 100) : 0
+    };
+  };
+  
+  // Si on affiche les résultats
+  if (showResults) {
     return (
-      <ResultsScreen 
+      <ResultsScreen
         level={level}
         levelColor={levelColor}
-        onContinue={() => navigation.navigate("Dashboard")}
+        score={calculateTotalScore()}
+        navigation={navigation}
       />
     );
   }
-  
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* En-tête avec niveau et titre */}
+    <SafeAreaView style={styles.safeArea}>
+      {/* En-tête */}
       <AssessmentHeader
         level={level}
         levelColor={levelColor}
-        onGoBack={handleGoBack}
+        navigation={navigation}
+        title={`${currentSectionData.title || "Assessment"}`}
       />
       
-      {/* Contenu principal avec questions */}
+      {/* Barre de progression */}
+      <ProgressBar
+        progress={progress}
+        currentSection={currentSection + 1}
+        totalSections={assessmentData.sections.length}
+        levelColor={levelColor}
+      />
+      
+      {/* Contenu principal */}
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
       >
-        {currentSection && currentQuestion && (
+        {/* Question actuelle */}
+        {currentQuestion && (
           <QuestionCard
-            sectionTitle={currentSection.toUpperCase().replace("_", " ")}
             question={currentQuestion}
+            levelColor={levelColor}
+          />
+        )}
+        
+        {/* Options de réponse */}
+        {currentQuestion && (
+          <AnswerOptions
+            options={currentQuestion.options}
             selectedAnswer={selectedAnswer}
             onSelectAnswer={setSelectedAnswer}
             showFeedback={showFeedback}
+            correctAnswer={currentQuestion.correctAnswer}
             levelColor={levelColor}
-            fadeAnim={fadeAnim}
+          />
+        )}
+        
+        {/* Feedback */}
+        {showFeedback && (
+          <FeedbackDisplay
+            isCorrect={isCorrect}
+            question={currentQuestion}
+            selectedAnswer={selectedAnswer}
           />
         )}
       </ScrollView>
       
-      {/* Boutons d'action (vérifier, suivant, réessayer) */}
+      {/* Boutons d'action */}
       <ActionButtons
         showFeedback={showFeedback}
+        isCorrect={isCorrect}
         selectedAnswer={selectedAnswer}
-        onValidate={() => {
-          validateAnswer();
-          animateFeedback();
-        }}
-        onNext={goToNextQuestion}
-        onTryAgain={tryAgain}
-        isLastQuestion={isLastQuestion}
-        isLastSection={isLastSection}
+        onCheck={checkAnswer}
+        onNext={goToNext}
+        onRetry={retryExercise}
+        canCheck={canCheckAnswer()}
         levelColor={levelColor}
+        style={styles.actionButtons}
       />
     </SafeAreaView>
   );

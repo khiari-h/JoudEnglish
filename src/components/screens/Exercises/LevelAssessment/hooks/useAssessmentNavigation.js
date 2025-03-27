@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { Animated } from 'react-native';
+import { useNavigationControls } from '../common';
 
 /**
  * Hook personnalisé pour gérer la navigation et les transitions dans l'évaluation
@@ -9,8 +10,11 @@ import { Animated } from 'react-native';
  * @param {Animated.Value} params.fadeAnim - Valeur d'animation pour les effets de fondu
  * @param {string} params.currentSection - Section actuelle
  * @param {number} params.currentQuestionIndex - Index de la question actuelle
+ * @param {number} params.totalQuestions - Nombre total de questions dans la section actuelle
+ * @param {Function} params.setCurrentQuestionIndex - Fonction pour mettre à jour l'index
  * @param {boolean} params.showFeedback - Indique si le feedback est visible
  * @param {number|null} params.selectedAnswer - Index de la réponse sélectionnée
+ * @param {Function} params.resetQuestionState - Fonction pour réinitialiser l'état de la question
  * @returns {Object} - Fonctions de navigation et d'animation
  */
 const useAssessmentNavigation = ({
@@ -18,13 +22,33 @@ const useAssessmentNavigation = ({
   fadeAnim,
   currentSection,
   currentQuestionIndex,
+  totalQuestions,
+  setCurrentQuestionIndex,
   showFeedback,
   selectedAnswer,
+  resetQuestionState = () => {}
 }) => {
-  // Retour à l'écran précédent
-  const handleGoBack = useCallback(() => {
+  // Fonction pour passer à la section suivante quand toutes les questions sont terminées
+  const handleSectionCompletion = useCallback(() => {
+    // Logique pour passer à la section suivante ou terminer l'évaluation
+    // Cette logique dépendra de votre implémentation spécifique
+    // Pour l'instant, on retourne simplement à l'écran précédent
     navigation.goBack();
   }, [navigation]);
+
+  // Utiliser le hook générique pour la navigation de base
+  const {
+    handleGoBack: genericHandleGoBack,
+    canGoToNext: genericCanGoToNext,
+    isLastItem
+  } = useNavigationControls({
+    navigation,
+    currentIndex: currentQuestionIndex,
+    totalItems: totalQuestions,
+    setCurrentIndex: setCurrentQuestionIndex,
+    resetState: resetQuestionState,
+    onComplete: handleSectionCompletion
+  });
 
   // Animation pour le feedback
   const animateFeedback = useCallback(() => {
@@ -75,12 +99,13 @@ const useAssessmentNavigation = ({
   }, [showFeedback]);
 
   return {
-    handleGoBack,
+    handleGoBack: genericHandleGoBack,
     animateFeedback,
     tryAgain,
     goToNextQuestion,
     canCheckAnswer,
     canGoToNext,
+    isLastQuestion: isLastItem
   };
 };
 

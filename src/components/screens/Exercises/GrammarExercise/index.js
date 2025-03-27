@@ -1,6 +1,7 @@
-import React from 'react';
+// src/components/screens/Exercises/GrammarExercise/index.js
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, SafeAreaView } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 
 // Import des composants
 import ExerciseHeader from './components/ExerciseHeader';
@@ -12,56 +13,96 @@ import FeedbackDisplay from './components/FeedbackDisplay';
 import ExerciseActions from './components/ExerciseActions';
 
 // Import des hooks personnalisés
-import useGrammarExercise from './hooks/useGrammarExercise';
-import useExerciseNavigation from './hooks/useExerciseNavigation';
-
-// Import des utilitaires
-import { getLevelColor } from './utils/levelUtils';
+import { useExerciseState } from '../../../hooks/common';
+import { getGrammarDataByLevel } from './utils/dataUtils';
 
 // Import des styles
 import styles from './style';
 
 /**
- * Composant principal pour les exercices de grammaire (version simplifiée)
+ * Composant principal pour les exercices de grammaire
  */
-const GrammarExercise = () => {
-  const navigation = useNavigation();
+const GrammarExercise = ({ navigation }) => {
   const route = useRoute();
   const { level } = route.params || { level: 'A1' };
-  const levelColor = getLevelColor(level);
 
-  // Récupérer la logique et les états des hooks personnalisés
+  // États spécifiques à la grammaire
+  const [selectedRuleIndex, setSelectedRuleIndex] = useState(0);
+  const [grammarData, setGrammarData] = useState([]);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [inputText, setInputText] = useState('');
+
+  // Charger les données de grammaire
+  useEffect(() => {
+    const data = getGrammarDataByLevel(level);
+    setGrammarData(data);
+  }, [level]);
+
+  // Obtenir la règle et les exercices actuels
+  const currentRule = grammarData[selectedRuleIndex] || { exercises: [] };
+
+  // Fonction personnalisée pour vérifier les réponses
+  const checkGrammarAnswer = (userAnswer, exercise) => {
+    if (exercise.type === 'multiple_choice') {
+      return userAnswer === exercise.correctOption;
+    } else if (exercise.type === 'fill_blank') {
+      const normalizedAnswer = userAnswer.trim().toLowerCase();
+      return exercise.acceptedAnswers.some(
+        answer => normalizedAnswer === answer.toLowerCase()
+      );
+    }
+    return false;
+  };
+
+  // Utiliser le hook générique d'exercice
   const {
-    // États
-    selectedRuleIndex, setSelectedRuleIndex,
-    currentExerciseIndex, setCurrentExerciseIndex,
-    selectedOption, setSelectedOption,
-    inputText, setInputText,
-    showFeedback, isCorrect, attempts,
-    
-    // Données
-    grammarData, currentRule, currentExercise, 
-    isLastExercise, progress,
-    
-    // Fonctions
-    resetExercise, checkAnswer, retryExercise,
-    canCheckAnswer,
-  } = useGrammarExercise(level);
-
-  // Logique de navigation
-  const { 
-    goToNextExercise, 
-    goToPreviousExercise,
-    handleRuleChange,
-  } = useExerciseNavigation({
+    currentIndex: currentExerciseIndex,
+    setCurrentIndex: setCurrentExerciseIndex,
+    currentExercise,
+    showFeedback,
+    isCorrect,
+    attempts,
+    userAnswer,
+    setUserAnswer,
+    progress,
+    levelColor,
+    isLastExercise,
+    checkAnswer,
+    retryExercise,
+    resetExerciseState,
+    goToNext: goToNextExercise,
+    goToPrevious: goToPreviousExercise,
+    handleGoBack,
+    canGoToNext,
+    canGoToPrevious,
+    canCheckAnswer
+  } = useExerciseState({
+    type: 'grammar',
+    level,
+    exercises: currentRule.exercises,
     navigation,
-    currentExerciseIndex,
-    selectedRuleIndex,
-    grammarData,
-    setCurrentExerciseIndex,
-    setSelectedRuleIndex,
-    resetExercise,
+    checkAnswerFn: checkGrammarAnswer
   });
+
+  // Changer de règle grammaticale
+  const handleRuleChange = (index) => {
+    if (index !== selectedRuleIndex) {
+      setSelectedRuleIndex(index);
+      resetExerciseState();
+      setCurrentExerciseIndex(0);
+      setSelectedOption(null);
+      setInputText('');
+    }
+  };
+
+  // Mise à jour de la réponse utilisateur selon le type d'exercice
+  useEffect(() => {
+    if (currentExercise?.type === 'multiple_choice') {
+      setUserAnswer(selectedOption);
+    } else if (currentExercise?.type === 'fill_blank') {
+      setUserAnswer(inputText);
+    }
+  }, [selectedOption, inputText, currentExercise, setUserAnswer]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

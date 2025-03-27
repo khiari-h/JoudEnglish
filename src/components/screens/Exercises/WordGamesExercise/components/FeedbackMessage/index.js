@@ -1,41 +1,45 @@
+// src/components/screens/Exercises/WordGamesExercise/components/FeedbackMessage/index.js
 import React from 'react';
-import { View, Text } from 'react-native';
+import { Text } from 'react-native';
+import AnimatedFeedback from '../../../../../common/animatedFeedback';
 import styles from './style';
 
 /**
- * Composant d'affichage du feedback après une réponse
+ * Composant pour afficher un message de feedback dans les jeux de mots
+ * 
+ * @param {Object} props - Les propriétés du composant
+ * @param {boolean} props.isCorrect - Indique si la réponse est correcte
+ * @param {string} props.message - Message personnalisé
+ * @param {string} props.correctAnswer - Réponse correcte (si incorrecte)
  */
-const FeedbackMessage = ({ isCorrect, levelColor, game }) => {
-  // Message de succès ou d'échec
-  const title = isCorrect ? "Great job!" : "Try again!";
-  
-  // Message personnalisé ou par défaut
-  const message = isCorrect
-    ? (game.successMessage || "You've successfully completed this game!")
-    : (game.failureMessage || "Don't worry, you can try another word game.");
-
-  return (
-    <View
-      style={[
-        styles.feedbackContainer,
-        isCorrect
-          ? [styles.correctFeedback, { borderLeftColor: levelColor }]
-          : styles.incorrectFeedback,
-      ]}
-    >
-      <Text style={styles.feedbackTitle}>{title}</Text>
-      <Text style={styles.feedbackText}>{message}</Text>
+const FeedbackMessage = ({
+  isCorrect,
+  message,
+  correctAnswer
+}) => {
+  // Préparer le contenu du message
+  const messageContent = () => (
+    <>
+      {message && (
+        <Text style={styles.feedbackText}>{message}</Text>
+      )}
       
-      {/* Afficher la réponse correcte en cas d'échec */}
-      {!isCorrect && game.correctAnswer && (
+      {!isCorrect && correctAnswer && (
         <Text style={styles.correctAnswerText}>
-          Correct answer:{" "}
-          <Text style={styles.answerHighlight}>
-            {game.correctAnswer}
-          </Text>
+          Correct answer: <Text style={styles.answerHighlight}>{correctAnswer}</Text>
         </Text>
       )}
-    </View>
+    </>
+  );
+
+  return (
+    <AnimatedFeedback
+      isCorrect={isCorrect}
+      title={isCorrect ? "Correct!" : "Incorrect!"}
+      message={messageContent()}
+      animationType={isCorrect ? "pulse" : "flash"}
+      style={styles.customFeedbackStyle}
+    />
   );
 };
 

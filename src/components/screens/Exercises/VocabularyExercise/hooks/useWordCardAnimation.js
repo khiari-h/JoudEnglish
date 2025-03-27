@@ -1,40 +1,31 @@
-import { useState, useEffect } from 'react';
-import { Animated } from 'react-native';
+import { useEffect } from 'react';
+import { useAnimations } from '../../../hooks/common';
 
 /**
- * Hook to manage word card animations
- * @returns {Object} Animation values and controls
+ * Hook pour gérer les animations des cartes de vocabulaire
+ * @returns {Object} Valeurs et contrôles d'animation
  */
 export const useWordCardAnimation = () => {
-  const [fadeAnim] = useState(new Animated.Value(0));
-  const [slideAnim] = useState(new Animated.Value(50));
+  // Utiliser notre hook générique d'animations
+  const { 
+    fadeAnim, 
+    slideAnim, 
+    animateIn, 
+    resetAnimations 
+  } = useAnimations({
+    initialValues: { fade: 0, slide: 50, scale: 1 },
+    config: { duration: 500 }
+  });
 
-  // Function to trigger animation
+  // Fonction pour déclencher l'animation
   const animateCard = () => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
-
-  // Function to reset animation values
-  const resetAnimation = () => {
-    fadeAnim.setValue(0);
-    slideAnim.setValue(50);
+    animateIn();
   };
 
   return {
     fadeAnim,
     slideAnim,
     animateCard,
-    resetAnimation,
+    resetAnimation: resetAnimations,
   };
 };

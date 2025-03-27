@@ -1,79 +1,78 @@
-// ExerciseSelection/components/ExerciseCard/index.js
 import React from "react";
-import { View, Text, Pressable } from "react-native";
-import Button from "../../../ui/Button";
+import { View, Text, Animated } from "react-native";
+import { useAnimations } from '../../../hooks/common';
 import styles from "./style";
 
-const ExerciseCard = ({ exercise, onPress, isLast }) => {
-  const { title, description, icon, color, progress } = exercise;
+const ExerciseCard = ({
+  children,
+  title,
+  subtitle,
+  style,
+  levelColor,
+  bordered = false,
+  elevated = true,
+  animated = false,
+  animationType = "fadeIn"
+}) => {
+  // Utiliser les animations uniquement si demandé
+  const { animatedStyles } = useAnimations({
+    initialValues: { 
+      fade: animated ? 0 : 1, 
+      slide: animationType.includes('slide') ? 50 : 0, 
+      scale: animationType.includes('scale') ? 0.95 : 1 
+    }
+  });
+
+  // Styles de base pour la carte
+  const cardStyle = [
+    styles.card,
+    elevated && styles.elevated,
+    bordered && [styles.bordered, levelColor ? { borderColor: levelColor } : null],
+    style,
+  ];
+
+  // Si des animations sont fournies, utiliser une Animated.View
+  const CardComponent = animated ? Animated.View : View;
+
+  // Obtenir le style d'animation approprié
+  const getAnimationStyle = () => {
+    if (!animated) return {};
+    
+    if (animationType === 'fadeIn') {
+      return animatedStyles.fade;
+    } else if (animationType === 'slideIn') {
+      return animatedStyles.slide;
+    } else if (animationType === 'scaleIn') {
+      return animatedStyles.scale;
+    } else if (animationType === 'combined') {
+      return animatedStyles.combined;
+    }
+    
+    return {};
+  };
 
   return (
-    <Pressable
-      style={({ pressed }) => [
-        styles.exerciseCard,
-        {
-          borderLeftWidth: 4,
-          borderLeftColor: color,
-          marginBottom: isLast ? 30 : 15,
-          opacity: pressed ? 0.95 : 1,
-        },
-      ]}
-      onPress={onPress}
-    >
-      <View style={styles.exerciseTopSection}>
-        <View
-          style={[
-            styles.exerciseIconContainer,
-            { backgroundColor: `${color}15` },
-          ]}
-        >
-          <Text style={styles.exerciseIcon}>{icon}</Text>
-        </View>
-
-        <View style={styles.exerciseInfo}>
-          <Text style={styles.exerciseTitle}>{title}</Text>
-          <Text style={styles.exerciseDescription}>{description}</Text>
-        </View>
-      </View>
-
-      {progress > 0 ? (
-        <View style={styles.progressSection}>
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${progress}%`,
-                    backgroundColor: color,
-                  },
-                ]}
-              />
-            </View>
-            <Text style={[styles.progressText, { color: color }]}>
-              {progress}%
+    <CardComponent style={[cardStyle, animated && getAnimationStyle()]}>
+      {/* En-tête optionnel avec titre et sous-titre */}
+      {(title || subtitle) && (
+        <View style={styles.cardHeader}>
+          {title && (
+            <Text
+              style={[
+                styles.cardTitle,
+                levelColor ? { color: levelColor } : null,
+              ]}
+            >
+              {title}
             </Text>
-          </View>
-        </View>
-      ) : (
-        <View style={styles.newBadgeContainer}>
-          <View style={[styles.newBadge, { backgroundColor: `${color}15` }]}>
-            <Text style={[styles.newBadgeText, { color: color }]}>New</Text>
-          </View>
+          )}
+          {subtitle && <Text style={styles.cardSubtitle}>{subtitle}</Text>}
         </View>
       )}
 
-      <View style={styles.startButtonContainer}>
-        <Button
-          title="Start"
-          color={color}
-          fullWidth={true}
-          style={styles.startButton}
-          textStyle={styles.startButtonText}
-          onPress={onPress}
-        />
-      </View>
-    </Pressable>
+      {/* Contenu principal */}
+      <View style={styles.cardContent}>{children}</View>
+    </CardComponent>
   );
 };
 

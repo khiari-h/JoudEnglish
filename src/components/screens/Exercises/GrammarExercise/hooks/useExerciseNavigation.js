@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
+import { useNavigationControls } from '../common';
 
 /**
- * Hook personnalisé pour gérer la navigation entre exercices et règles
+ * Hook personnalisé pour gérer la navigation entre exercices et règles de grammaire
  * 
  * @param {Object} params - Paramètres du hook
  * @param {Object} params.navigation - Objet de navigation
@@ -22,44 +23,37 @@ export const useExerciseNavigation = ({
   setSelectedRuleIndex,
   resetExercise,
 }) => {
-  // Passer à l'exercice suivant
-  const goToNextExercise = useCallback(() => {
-    const currentRule = grammarData[selectedRuleIndex];
-    const isLastExercise = currentExerciseIndex === (currentRule?.exercises?.length - 1);
-    
-    if (isLastExercise) {
-      if (selectedRuleIndex < grammarData.length - 1) {
-        // Passer à la règle suivante
-        setSelectedRuleIndex(selectedRuleIndex + 1);
-        resetExercise();
-        setCurrentExerciseIndex(0);
-      } else {
-        // Toutes les règles sont terminées
-        navigation.goBack();
-      }
+  // Définir une fonction pour passer à la règle suivante quand tous les exercices d'une règle sont terminés
+  const handleRuleCompletion = useCallback(() => {
+    if (selectedRuleIndex < grammarData.length - 1) {
+      // Passer à la règle suivante
+      setSelectedRuleIndex(selectedRuleIndex + 1);
+      resetExercise();
+      setCurrentExerciseIndex(0);
     } else {
-      resetExercise();
-      setCurrentExerciseIndex(currentExerciseIndex + 1);
+      // Toutes les règles sont terminées
+      navigation.goBack();
     }
-  }, [
-    currentExerciseIndex,
-    selectedRuleIndex,
-    grammarData,
+  }, [selectedRuleIndex, grammarData, navigation, resetExercise, setCurrentExerciseIndex, setSelectedRuleIndex]);
+
+  // Utiliser le hook générique pour la navigation de base
+  const {
+    goToNext,
+    goToPrevious,
+    handleGoBack,
+    canGoToNext,
+    canGoToPrevious,
+    isLastItem
+  } = useNavigationControls({
     navigation,
-    resetExercise,
-    setCurrentExerciseIndex,
-    setSelectedRuleIndex,
-  ]);
+    currentIndex: currentExerciseIndex,
+    totalItems: grammarData[selectedRuleIndex]?.exercises?.length || 0,
+    setCurrentIndex: setCurrentExerciseIndex,
+    resetState: resetExercise,
+    onComplete: handleRuleCompletion
+  });
 
-  // Revenir à l'exercice précédent
-  const goToPreviousExercise = useCallback(() => {
-    if (currentExerciseIndex > 0) {
-      resetExercise();
-      setCurrentExerciseIndex(currentExerciseIndex - 1);
-    }
-  }, [currentExerciseIndex, resetExercise, setCurrentExerciseIndex]);
-
-  // Changer de règle grammaticale
+  // Changer de règle grammaticale (fonctionnalité spécifique à ce type d'exercice)
   const handleRuleChange = useCallback((index) => {
     if (index !== selectedRuleIndex) {
       setSelectedRuleIndex(index);
@@ -68,16 +62,14 @@ export const useExerciseNavigation = ({
     }
   }, [selectedRuleIndex, resetExercise, setCurrentExerciseIndex, setSelectedRuleIndex]);
 
-  // Navigation de retour à l'écran précédent
-  const handleGoBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
   return {
-    goToNextExercise,
-    goToPreviousExercise,
+    goToNextExercise: goToNext,
+    goToPreviousExercise: goToPrevious,
     handleRuleChange,
     handleGoBack,
+    canGoToNext,
+    canGoToPrevious,
+    isLastExercise: isLastItem
   };
 };
 
