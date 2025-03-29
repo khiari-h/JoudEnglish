@@ -12,25 +12,17 @@ import LevelAssessment from "../screens/Exercises/LevelAssessment";
 import ReadingExercise from "../screens/Exercises/ReadingExercise";
 import WordGamesExercise from "../screens/Exercises/WordGamesExercise";
 
-// Importation des nouveaux composants d'orthographe
-import SpellingSelectionScreen from "../screens/Exercises/spelling/spellingSelectionScreen";
-import SpellingRulesPractice from "../screens/Exercises/spelling/SpellingRulesPractice";
-import SpellingCorrectionPractice from "../screens/Exercises/spelling/spellingCorrectionPractice";
+// Importation des nouveaux composants d'orthographe refactorisés
+import { 
+  SpellingSelectionScreen, 
+  SpellingRulesPractice, 
+  SpellingCorrectionPractice 
+} from "../components/screens/Exercises/Spelling";
 
 const Stack = createStackNavigator();
 
-// Fonction pour obtenir la couleur selon le niveau (nous la gardons car elle pourrait être utilisée dans les écrans)
-const getLevelColor = (level) => {
-  const colors = {
-    A1: "#3b82f6",
-    A2: "#8b5cf6",
-    B1: "#10b981",
-    B2: "#f59e0b",
-    C1: "#ef4444",
-    C2: "#6366f1",
-  };
-  return colors[level] || "#4361EE";
-};
+// Nous supprimons la fonction getLevelColor car elle est maintenant importée 
+// depuis utils/levelUtils.js dans les composants concernés
 
 const AppNavigator = () => {
   const userProfile = {
