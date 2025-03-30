@@ -1,5 +1,5 @@
 // Importer les types d'exercices définis globalement dans l'application
-import { EXERCISE_TYPES } from '../../constants/exercicesTypes';
+import { EXERCISE_TYPES } from "../../../../../constants/exercicesTypes";
 
 // Données par défaut pour les exercices de correction
 export const DEFAULT_CORRECTION_DATA = {

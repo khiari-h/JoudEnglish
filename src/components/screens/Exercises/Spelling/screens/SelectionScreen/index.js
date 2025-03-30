@@ -8,11 +8,11 @@ import {
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import styles from "./styles";
-import getLevelColor from "../../utils/getLevelColor";
+import getLevelColor from "../../../../../../utils/getLevelColor";
 import { SPELLING_OPTIONS } from "../../constants";
-import useSpellingExercise from "../../../hooks/useSpellingExercise";
-import useExerciseType from "../../../hooks/useExerciseType";
-import { EXERCISE_TYPES } from "../../../constants/exercicesTypes";
+import useSpellingExercise from "../../hooks/useSpellingExercice";
+import useExerciseType from "../../../../../../hooks/useExerciceType";
+import { EXERCISE_TYPES } from "../../../../../../constants/exercicesTypes";
 
 /**
  * Écran de sélection des exercices d'orthographe

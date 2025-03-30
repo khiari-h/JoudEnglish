@@ -1,45 +1,49 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+} from "react-native";
+import { useRoute } from "@react-navigation/native";
 
 // Import components
-import Header from '../../components/Header';
-import ProgressBar from '../../components/ProgressBar';
-import ExerciseCard from '../../components/ExerciseCard';
-import ResultsScreen from '../../components/ResultsScreen';
+import Header from "../../components/Header";
+import ProgressBar from "../../components/ProgressBar";
+import ExerciseCard from "../../components/ExerciseCard";
+import ResultsScreen from "../../components/ResultsScreen";
 
 // Import hooks et utilities globaux
-import { useExerciseState } from '../../../hooks/common';
-import useSpellingExercise from '../../../hooks/useSpellingExercise';
-import { getLevelColor } from '../../../utils/levelUtils';
-import { EXERCISE_TYPES } from '../../../constants/exercicesTypes';
-import { DEFAULT_CORRECTION_DATA } from '../../constants';
+import { useExerciseState } from "../../../../../../hooks/common";
+import useSpellingExercise from "../../hooks/useSpellingExercice";
+import { getLevelColor } from "../../../../../../utils/getLevelColor";
+import { EXERCISE_TYPES } from "../../../../../../constants/exercicesTypes";
+import { DEFAULT_CORRECTION_DATA } from "../../constants";
 
 // Import styles
-import styles from './styles';
+import styles from "./styles";
 
 /**
  * Écran de pratique pour la correction d'orthographe
  */
 const CorrectionPractice = ({ navigation }) => {
   const route = useRoute();
-  const { level } = route.params || { level: 'A1' };
+  const { level } = route.params || { level: "A1" };
   const levelColor = getLevelColor(level);
-  
+
   // État pour les données d'exercices
   const [exercisesData, setExercisesData] = useState(null);
   const [hintState, setHintState] = useState({
     hasHint: false,
-    showHint: false
+    showHint: false,
   });
   const [completedExercises, setCompletedExercises] = useState([]);
-  
+
   // Utiliser le hook personnalisé pour les exercices d'orthographe
-  const { 
-    updateCorrectionProgress, 
-    getCorrectionProgress 
-  } = useSpellingExercise();
-  
+  const { updateCorrectionProgress, getCorrectionProgress } =
+    useSpellingExercise();
+
   // Charger les données d'exercices
   useEffect(() => {
     try {
@@ -49,16 +53,18 @@ const CorrectionPractice = ({ navigation }) => {
         // Simulation de l'importation des données de correction pour le niveau approprié
         spellingCorrectionData = DEFAULT_CORRECTION_DATA;
       } catch (error) {
-        console.warn("Erreur lors de l'importation des fichiers de correction d'orthographe");
+        console.warn(
+          "Erreur lors de l'importation des fichiers de correction d'orthographe"
+        );
         spellingCorrectionData = DEFAULT_CORRECTION_DATA;
       }
-      
+
       setExercisesData(spellingCorrectionData);
-      
+
       // Vérifier s'il y a une progression existante
       const progress = getCorrectionProgress(level);
       if (progress && progress.completed > 0) {
-        console.log('Progression existante:', progress);
+        console.log("Progression existante:", progress);
         // Vous pourriez restaurer l'état des exercices complétés ici
       }
     } catch (error) {
@@ -66,13 +72,13 @@ const CorrectionPractice = ({ navigation }) => {
       setExercisesData(DEFAULT_CORRECTION_DATA);
     }
   }, [level, getCorrectionProgress]);
-  
+
   // Fonction personnalisée pour vérifier les réponses
   const checkAnswerFn = (answer, exercise) => {
     if (!answer || !exercise) return false;
     return answer.trim().toLowerCase() === exercise.correctAnswer.toLowerCase();
   };
-  
+
   // Utiliser le hook d'état d'exercice global
   const {
     currentIndex,
@@ -86,13 +92,13 @@ const CorrectionPractice = ({ navigation }) => {
     goToNext,
     resetExerciseState,
     canCheckAnswer,
-    isLastExercise
+    isLastExercise,
   } = useExerciseState({
     type: EXERCISE_TYPES.SPELLING,
     level,
     exercises: exercisesData?.exercises || [],
     checkAnswerFn: checkAnswerFn,
-    autoSaveProgress: false // On va gérer la sauvegarde manuellement
+    autoSaveProgress: false, // On va gérer la sauvegarde manuellement
   });
 
   // Mettre à jour l'état de l'indice quand l'exercice change
@@ -100,43 +106,63 @@ const CorrectionPractice = ({ navigation }) => {
     if (currentExercise && currentExercise.hasHint !== undefined) {
       setHintState({
         hasHint: currentExercise.hasHint,
-        showHint: false
+        showHint: false,
       });
     } else {
       setHintState({
         hasHint: true,
-        showHint: false
+        showHint: false,
       });
     }
   }, [currentIndex, currentExercise]);
 
   // Toggle indice
   const toggleHint = () => {
-    setHintState(prev => ({
+    setHintState((prev) => ({
       ...prev,
-      showHint: !prev.showHint
+      showHint: !prev.showHint,
     }));
   };
-  
+
   // Mettre à jour la progression quand une réponse est correcte
   useEffect(() => {
-    if (showFeedback && isCorrect && !completedExercises.includes(currentIndex)) {
+    if (
+      showFeedback &&
+      isCorrect &&
+      !completedExercises.includes(currentIndex)
+    ) {
       const newCompletedExercises = [...completedExercises, currentIndex];
       setCompletedExercises(newCompletedExercises);
-      
+
       // Mettre à jour la progression
       const totalExercises = exercisesData?.exercises?.length || 0;
-      updateCorrectionProgress(level, newCompletedExercises.length, totalExercises);
+      updateCorrectionProgress(
+        level,
+        newCompletedExercises.length,
+        totalExercises
+      );
     }
-  }, [showFeedback, isCorrect, currentIndex, completedExercises, exercisesData, level, updateCorrectionProgress]);
-  
-  // Fonction personnalisée pour passer à l'exercice suivant 
+  }, [
+    showFeedback,
+    isCorrect,
+    currentIndex,
+    completedExercises,
+    exercisesData,
+    level,
+    updateCorrectionProgress,
+  ]);
+
+  // Fonction personnalisée pour passer à l'exercice suivant
   // ou afficher les résultats
   const handleGoToNext = () => {
     if (isLastExercise) {
       // Mettre à jour une dernière fois la progression
       const totalExercises = exercisesData?.exercises?.length || 0;
-      updateCorrectionProgress(level, completedExercises.length, totalExercises);
+      updateCorrectionProgress(
+        level,
+        completedExercises.length,
+        totalExercises
+      );
     }
     goToNext();
   };
@@ -178,18 +204,28 @@ const CorrectionPractice = ({ navigation }) => {
   }
 
   // Affiche l'écran de résultats si tous les exercices sont terminés et que nous sommes au dernier exercice
-  if (completedExercises.length === exercisesData.exercises.length && isLastExercise && showFeedback) {
+  if (
+    completedExercises.length === exercisesData.exercises.length &&
+    isLastExercise &&
+    showFeedback
+  ) {
     // Mettre à jour une dernière fois la progression à 100%
-    updateCorrectionProgress(level, exercisesData.exercises.length, exercisesData.exercises.length);
-    
+    updateCorrectionProgress(
+      level,
+      exercisesData.exercises.length,
+      exercisesData.exercises.length
+    );
+
     return (
       <SafeAreaView style={styles.safeArea}>
         <ResultsScreen
           exercises={exercisesData.exercises}
           userAttempts={exercisesData.exercises.map((_, index) => ({
-            input: completedExercises.includes(index) ? exercisesData.exercises[index].correctAnswer : "",
+            input: completedExercises.includes(index)
+              ? exercisesData.exercises[index].correctAnswer
+              : "",
             isCorrect: completedExercises.includes(index),
-            attempted: completedExercises.includes(index)
+            attempted: completedExercises.includes(index),
           }))}
           score={completedExercises.length}
           level={level}

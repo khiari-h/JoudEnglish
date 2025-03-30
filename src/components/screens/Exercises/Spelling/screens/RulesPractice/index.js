@@ -1,43 +1,51 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+} from "react-native";
+import { useRoute } from "@react-navigation/native";
 
 // Import components
-import Header from '../../components/Header';
-import ProgressBar from '../../components/ProgressBar';
-import ExerciseCard from '../../components/ExerciseCard';
-import ResultsScreen from '../../components/ResultsScreen';
+import Header from "../../components/Header";
+import ProgressBar from "../../components/ProgressBar";
+import ExerciseCard from "../../components/ExerciseCard";
+import ResultsScreen from "../../components/ResultsScreen";
 
 // Import hooks et utilities globaux
-import { useExerciseState } from '../../../hooks/common';
-import useExerciseType from '../../../hooks/useExerciseType';
-import useSpellingExercise from '../../../hooks/useSpellingExercise';
-import { getLevelColor } from '../../../utils/levelUtils';
-import { EXERCISE_TYPES } from '../../../constants/exercicesTypes';
-import { DEFAULT_RULES_DATA } from '../../constants';
+import { useExerciseState } from "../../../../../../hooks/common";
+import useExerciseType from "../../../../../../hooks/useExerciceType";
+import useSpellingExercise from "../../hooks/useSpellingExercice";
+import { getLevelColor } from "../../../../../../utils/getLevelColor";
+import { EXERCISE_TYPES } from "../../../../../../constants/exercicesTypes";
+import { DEFAULT_RULES_DATA } from "../../constants";
 
 // Import styles
-import styles from './styles';
+import styles from "./styles";
 
 /**
  * Écran de pratique pour les règles d'orthographe
  */
 const RulesPractice = () => {
   const route = useRoute();
-  const { level } = route.params || { level: 'A1' };
+  const { level } = route.params || { level: "A1" };
   const levelColor = getLevelColor(level);
-  
+
   // État pour les données d'exercices
   const [exercisesData, setExercisesData] = useState(null);
   const [hintState, setHintState] = useState({
     hasHint: false,
-    showHint: false
+    showHint: false,
   });
-  
+
   // Utiliser les hooks pour la progression
-  const { updateExerciseProgress, getExerciseProgress } = useExerciseType(EXERCISE_TYPES.SPELLING);
+  const { updateExerciseProgress, getExerciseProgress } = useExerciseType(
+    EXERCISE_TYPES.SPELLING
+  );
   const { getCorrectionProgress } = useSpellingExercise();
-  
+
   // Charger les données d'exercices et la progression existante
   useEffect(() => {
     try {
@@ -47,30 +55,35 @@ const RulesPractice = () => {
         // Simulation de l'importation des données de règles pour le niveau approprié
         spellingRulesData = DEFAULT_RULES_DATA;
       } catch (error) {
-        console.warn("Erreur lors de l'importation des fichiers de règles d'orthographe");
+        console.warn(
+          "Erreur lors de l'importation des fichiers de règles d'orthographe"
+        );
         spellingRulesData = DEFAULT_RULES_DATA;
       }
-      
+
       setExercisesData(spellingRulesData);
-      
+
       // Vérifier s'il y a une progression existante pour les règles
       const rulesProgress = getExerciseProgress(level, "spelling_rules");
       if (rulesProgress && rulesProgress.completed > 0) {
-        console.log('Progression existante pour les règles:', rulesProgress);
+        console.log("Progression existante pour les règles:", rulesProgress);
         // Vous pourriez restaurer l'état des exercices complétés ici si nécessaire
       }
-      
+
       // On peut également vérifier la progression de correction pour référence
       const correctionProgress = getCorrectionProgress(level);
       if (correctionProgress && correctionProgress.completed > 0) {
-        console.log('Progression existante pour la correction:', correctionProgress);
+        console.log(
+          "Progression existante pour la correction:",
+          correctionProgress
+        );
       }
     } catch (error) {
       console.error("Erreur lors du chargement des données:", error);
       setExercisesData(DEFAULT_RULES_DATA);
     }
   }, [level, getExerciseProgress, getCorrectionProgress]);
-  
+
   // Utiliser le hook d'état d'exercice global
   const {
     currentIndex,
@@ -85,7 +98,7 @@ const RulesPractice = () => {
     goToNext,
     resetExerciseState,
     canCheckAnswer,
-    isLastExercise
+    isLastExercise,
   } = useExerciseState({
     type: EXERCISE_TYPES.SPELLING,
     level,
@@ -94,8 +107,10 @@ const RulesPractice = () => {
     // Fonction personnalisée pour vérifier la réponse
     checkAnswerFn: (answer, exercise) => {
       if (!answer || !exercise) return false;
-      return answer.trim().toLowerCase() === exercise.correctAnswer.toLowerCase();
-    }
+      return (
+        answer.trim().toLowerCase() === exercise.correctAnswer.toLowerCase()
+      );
+    },
   });
 
   // Mettre à jour l'état de l'indice quand l'exercice change
@@ -103,21 +118,21 @@ const RulesPractice = () => {
     if (currentExercise && currentExercise.hasHint !== undefined) {
       setHintState({
         hasHint: currentExercise.hasHint,
-        showHint: false
+        showHint: false,
       });
     } else {
       setHintState({
         hasHint: true,
-        showHint: false
+        showHint: false,
       });
     }
   }, [currentIndex, currentExercise]);
 
   // Toggle indice
   const toggleHint = () => {
-    setHintState(prev => ({
+    setHintState((prev) => ({
       ...prev,
-      showHint: !prev.showHint
+      showHint: !prev.showHint,
     }));
   };
 
@@ -126,9 +141,7 @@ const RulesPractice = () => {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>
-            Loading spelling rules...
-          </Text>
+          <Text style={styles.loadingText}>Loading spelling rules...</Text>
         </View>
       </SafeAreaView>
     );
@@ -158,7 +171,10 @@ const RulesPractice = () => {
   }
 
   // Affiche l'écran de résultats si tous les exercices sont terminés
-  if (completedItems.length === exercisesData.exercises.length && exercisesData.exercises.length > 0) {
+  if (
+    completedItems.length === exercisesData.exercises.length &&
+    exercisesData.exercises.length > 0
+  ) {
     // Mettre à jour une dernière fois la progression à 100%
     updateExerciseProgress(
       level,
@@ -166,15 +182,17 @@ const RulesPractice = () => {
       exercisesData.exercises.length,
       exercisesData.exercises.length
     );
-    
+
     return (
       <SafeAreaView style={styles.safeArea}>
         <ResultsScreen
           exercises={exercisesData.exercises}
           userAttempts={exercisesData.exercises.map((_, index) => ({
-            input: completedItems.includes(index) ? exercisesData.exercises[index].correctAnswer : "",
+            input: completedItems.includes(index)
+              ? exercisesData.exercises[index].correctAnswer
+              : "",
             isCorrect: completedItems.includes(index),
-            attempted: completedItems.includes(index)
+            attempted: completedItems.includes(index),
           }))}
           score={completedItems.length}
           level={level}
@@ -250,19 +268,19 @@ const RulesPractice = () => {
               { backgroundColor: levelColor },
             ]}
             onPress={() => {
-            // Si c'est le dernier exercice, mettre à jour la progression
-            if (isLastExercise) {
-              const totalExercises = exercisesData?.exercises?.length || 0;
-              updateExerciseProgress(
-                level,
-                "spelling_rules",
-                completedItems.length,
-                totalExercises
-              );
-            }
-            // Passer à l'exercice suivant
-            goToNext();
-          }}
+              // Si c'est le dernier exercice, mettre à jour la progression
+              if (isLastExercise) {
+                const totalExercises = exercisesData?.exercises?.length || 0;
+                updateExerciseProgress(
+                  level,
+                  "spelling_rules",
+                  completedItems.length,
+                  totalExercises
+                );
+              }
+              // Passer à l'exercice suivant
+              goToNext();
+            }}
           >
             <Text style={styles.actionButtonText}>
               {!isLastExercise ? "Next Rule" : "See Results"}

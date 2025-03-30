@@ -1,12 +1,12 @@
 // src/hooks/common/useExerciseState.js
-import { useState, useCallback, useMemo } from 'react';
-import { useNavigationControls } from './index';
-import useProgress from '../useProgress';
-import { getLevelColor } from '../../utils/levelUtils';
+import { useState, useCallback, useMemo } from "react";
+import { useNavigationControls } from "./index";
+import useProgress from "../useProgress";
+import { getLevelColor } from "../../utils/getLevelColor";
 
 /**
  * Hook générique pour gérer l'état des exercices
- * 
+ *
  * @param {Object} params - Paramètres du hook
  * @param {string} params.type - Type d'exercice (grammar, vocabulary, etc.)
  * @param {string} params.level - Niveau (A1, A2, B1, etc.)
@@ -22,7 +22,7 @@ const useExerciseState = ({
   exercises = [],
   navigation,
   checkAnswerFn,
-  autoSaveProgress = true
+  autoSaveProgress = true,
 }) => {
   // États de base
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -34,18 +34,23 @@ const useExerciseState = ({
 
   // Hook de progression
   const { updateProgress } = useProgress();
-  
+
   // Couleur du niveau
   const levelColor = useMemo(() => getLevelColor(level), [level]);
-  
+
   // Données de l'exercice actuel
-  const currentExercise = useMemo(() => exercises[currentIndex] || null, [exercises, currentIndex]);
-  
+  const currentExercise = useMemo(
+    () => exercises[currentIndex] || null,
+    [exercises, currentIndex]
+  );
+
   // Calcul de la progression
   const progress = useMemo(() => {
-    return exercises.length > 0 ? ((currentIndex + 1) / exercises.length) * 100 : 0;
+    return exercises.length > 0
+      ? ((currentIndex + 1) / exercises.length) * 100
+      : 0;
   }, [currentIndex, exercises]);
-  
+
   // Réinitialiser l'état pour un nouvel exercice
   const resetExerciseState = useCallback(() => {
     setShowFeedback(false);
@@ -53,41 +58,41 @@ const useExerciseState = ({
     setAttempts(0);
     setUserAnswer(null);
   }, []);
-  
+
   // Navigation entre les exercices
-  const { 
+  const {
     goToNext,
     goToPrevious,
     handleGoBack,
     canGoToNext,
     canGoToPrevious,
-    isLastItem: isLastExercise
+    isLastItem: isLastExercise,
   } = useNavigationControls({
     navigation,
     currentIndex,
     totalItems: exercises.length,
     setCurrentIndex,
-    resetState: resetExerciseState
+    resetState: resetExerciseState,
   });
-  
+
   // Vérifier la réponse
   const checkAnswer = useCallback(() => {
     // Incrémenter le nombre de tentatives
-    setAttempts(prev => prev + 1);
-    
+    setAttempts((prev) => prev + 1);
+
     // Vérifier la réponse avec la fonction personnalisée ou la fonction par défaut
-    const result = checkAnswerFn 
+    const result = checkAnswerFn
       ? checkAnswerFn(userAnswer, currentExercise)
       : userAnswer === currentExercise?.correctAnswer;
-    
+
     setIsCorrect(result);
     setShowFeedback(true);
-    
+
     // Si la réponse est correcte, ajouter à la liste des items complétés
     if (result && !completedItems.includes(currentIndex)) {
       const newCompletedItems = [...completedItems, currentIndex];
       setCompletedItems(newCompletedItems);
-      
+
       // Enregistrer la progression si activé
       if (autoSaveProgress) {
         updateProgress(
@@ -99,32 +104,32 @@ const useExerciseState = ({
         );
       }
     }
-    
+
     return result;
   }, [
-    userAnswer, 
-    currentExercise, 
-    checkAnswerFn, 
-    completedItems, 
-    currentIndex, 
-    type, 
-    level, 
-    exercises.length, 
-    autoSaveProgress, 
-    updateProgress
+    userAnswer,
+    currentExercise,
+    checkAnswerFn,
+    completedItems,
+    currentIndex,
+    type,
+    level,
+    exercises.length,
+    autoSaveProgress,
+    updateProgress,
   ]);
-  
+
   // Réessayer la question actuelle
   const retryExercise = useCallback(() => {
     setShowFeedback(false);
     setUserAnswer(null);
   }, []);
-  
+
   // Vérifier si on peut vérifier la réponse
   const canCheckAnswer = useCallback(() => {
     return userAnswer !== null && !showFeedback;
   }, [userAnswer, showFeedback]);
-  
+
   return {
     // États
     currentIndex,
@@ -137,23 +142,23 @@ const useExerciseState = ({
     progress,
     levelColor,
     isLastExercise,
-    
+
     // Actions
     setCurrentIndex,
     setUserAnswer,
     checkAnswer,
     retryExercise,
     resetExerciseState,
-    
+
     // Navigation
     goToNext,
     goToPrevious,
     handleGoBack,
     canGoToNext,
     canGoToPrevious,
-    
+
     // Autres
-    canCheckAnswer
+    canCheckAnswer,
   };
 };
 

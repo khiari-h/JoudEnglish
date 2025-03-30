@@ -1,8 +1,14 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, Animated } from 'react-native';
-import FeedbackDisplay from '../FeedbackDisplay';
-import styles from './styles';
-import { useAnimations } from '../../../hooks/common';
+import React from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Animated,
+} from "react-native";
+import FeedbackDisplay from "../FeedbackDisplay";
+import styles from "./styles";
+import { useAnimations } from "../../../../../../hooks/common";
 
 /**
  * Composant pour afficher une carte d'exercice
@@ -31,7 +37,7 @@ const ExerciseCard = ({
 }) => {
   // Utilisation du hook d'animations global
   const { animatedStyles } = useAnimations({
-    initialValues: { fade: 1, scale: 1 }
+    initialValues: { fade: 1, scale: 1 },
   });
 
   // Si pas d'exercice, ne rien rendre
@@ -82,7 +88,11 @@ const ExerciseCard = ({
           ]}
           value={userAnswer}
           onChangeText={setUserAnswer}
-          placeholder={isRuleExercise ? "Enter your answer..." : "Enter the correct spelling..."}
+          placeholder={
+            isRuleExercise
+              ? "Enter your answer..."
+              : "Enter the correct spelling..."
+          }
           placeholderTextColor="#94a3b8"
           autoCapitalize="none"
           autoCorrect={false}
@@ -105,10 +115,7 @@ const ExerciseCard = ({
       {/* Affichage de l'indice */}
       {showHint && !showFeedback && (
         <View
-          style={[
-            styles.hintContainer,
-            { backgroundColor: `${levelColor}10` },
-          ]}
+          style={[styles.hintContainer, { backgroundColor: `${levelColor}10` }]}
         >
           <Text style={styles.hintText}>{exercise.hint}</Text>
         </View>

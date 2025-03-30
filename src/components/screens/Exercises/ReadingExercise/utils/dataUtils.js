@@ -1,5 +1,5 @@
 // src/components/screens/Exercises/ReadingExercise/utils/dataUtils.js
-import readingA1Data from "../../../../../data/exercises/reading/readingA1Data";
+import readingA1Data from "../../../../../data/exercises/reading/readingA1";
 // Importer d'autres niveaux quand ils seront disponibles
 // import readingA2Data from '../../../../../data/exercises/reading/readingA2Data';
 // import readingB1Data from '../../../../../data/exercises/reading/readingB1Data';

@@ -1,11 +1,10 @@
-import React, { useEffect } from 'react';
-import { View, Text, Animated } from 'react-native';
-import { useAnimations } from '../../../hooks/common';
-import styles from './style';
+import React, { useEffect } from "react";
+import { View, Text, Animated, StyleSheet } from "react-native";
+import { useAnimations } from "../../hooks/common/useAnimations";
 
 /**
  * Composant pour afficher un feedback animé
- * 
+ *
  * @param {Object} props - Propriétés du composant
  * @param {boolean} props.isCorrect - Indique si la réponse est correcte
  * @param {string} props.title - Titre du feedback
@@ -17,26 +16,20 @@ const AnimatedFeedback = ({
   isCorrect,
   title,
   message,
-  animationType = 'fadeIn',
-  style
+  animationType = "fadeIn",
+  style,
 }) => {
-  const { 
-    fadeAnim, 
-    scaleAnim,
-    fadeIn,
-    pulse,
-    flash,
-    animatedStyles
-  } = useAnimations({
-    initialValues: { fade: 0, scale: 0.95 },
-    config: { duration: 400 }
-  });
+  const { fadeAnim, scaleAnim, fadeIn, pulse, flash, animatedStyles } =
+    useAnimations({
+      initialValues: { fade: 0, scale: 0.95 },
+      config: { duration: 400 },
+    });
 
   useEffect(() => {
     // Choisir l'animation en fonction du type demandé
-    if (animationType === 'flash') {
+    if (animationType === "flash") {
       flash();
-    } else if (animationType === 'pulse') {
+    } else if (animationType === "pulse") {
       pulse();
     } else {
       fadeIn();
@@ -45,7 +38,7 @@ const AnimatedFeedback = ({
 
   // Obtenir le style d'animation approprié
   const getAnimationStyle = () => {
-    if (animationType === 'pulse') {
+    if (animationType === "pulse") {
       return animatedStyles.scale;
     } else {
       return animatedStyles.fade;
@@ -53,21 +46,19 @@ const AnimatedFeedback = ({
   };
 
   return (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.feedbackContainer,
         isCorrect ? styles.correctFeedback : styles.incorrectFeedback,
         getAnimationStyle(),
-        style
+        style,
       ]}
     >
       <Text style={styles.feedbackTitle}>
         {title || (isCorrect ? "Correct!" : "Incorrect!")}
       </Text>
-      
-      {message && (
-        <Text style={styles.feedbackText}>{message}</Text>
-      )}
+
+      {message && <Text style={styles.feedbackText}>{message}</Text>}
     </Animated.View>
   );
 };
