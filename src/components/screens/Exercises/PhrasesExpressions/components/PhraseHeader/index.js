@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import styles from './style';
-import Button from '../../../../../common/Button';
+import Button from '../../../../../ui/Button';
 
 /**
  * Composant d'en-tête pour l'écran de phrases et expressions

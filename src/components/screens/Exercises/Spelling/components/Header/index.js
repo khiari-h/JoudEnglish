@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import styles from './styles';
-import getLevelColor from '../../';
+import getLevelColor from '../../../../utils/getLevelColor';
 
 /**
  * Composant d'en-tête pour les écrans d'exercice

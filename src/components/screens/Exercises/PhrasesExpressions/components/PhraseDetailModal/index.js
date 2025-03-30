@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Modal, ScrollView, TouchableOpacity } from 'react-native';
 import styles from './style';
-import Button from '../../../../../common/Button';
+import Button from '../../../../../ui/Button';
 
 /**
  * Modal affichant les détails d'une phrase ou expression

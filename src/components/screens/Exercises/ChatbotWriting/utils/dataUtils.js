@@ -1,5 +1,5 @@
 // src/components/screens/Exercises/ChatbotExercise/utils/dataUtils.js
-import chatbotA1Data from "../../../../../data/exercises/chatbot/chatbotA1Data";
+import chatbotA1Data from '../../../../../data/exercises/chatbot/chatbotA1';
 // Importez d'autres niveaux si nécessaire
 // import chatbotA2Data from '../../../../../data/exercises/chatbot/chatbotA2Data';
 // import chatbotB1Data from '../../../../../data/exercises/chatbot/chatbotB1Data';

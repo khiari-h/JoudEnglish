@@ -1,6 +1,6 @@
 // src/components/screens/Exercises/GrammarExercise/components/FeedbackDisplay/index.js
 import React from 'react';
-import ExerciseFeedback from '../../../../../common/ExerciseFeedback';
+import ExerciseFeedback from '../../../../../common/exerciceFeedback';
 
 const FeedbackDisplay = ({
   isCorrect,

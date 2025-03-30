@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text } from "react-native";
 import Button from "../../../../../ui/Button";
-import styles from "./styles/headerStyles";
+import styles from "./style";
 
 /**
  * Composant d'en-tête pour les exercices de correction d'erreurs
