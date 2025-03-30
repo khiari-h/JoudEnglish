@@ -14,7 +14,9 @@ import ExerciseActions from './components/ExerciseActions';
 
 // Import des hooks personnalisés
 import { useExerciseState } from '../../../hooks/common';
+import useProgress from '../../../hooks/useProgress'; // Ajout du hook de progression
 import { getGrammarDataByLevel } from './utils/dataUtils';
+import { EXERCISE_TYPES } from '../../../constants/exercicesTypes'; // Ajout des constantes de types d'exercices
 
 // Import des styles
 import styles from './style';
@@ -26,16 +28,29 @@ const GrammarExercise = ({ navigation }) => {
   const route = useRoute();
   const { level } = route.params || { level: 'A1' };
 
+  // Utiliser le hook de progression
+  const { updateProgress } = useProgress();
+
   // États spécifiques à la grammaire
   const [selectedRuleIndex, setSelectedRuleIndex] = useState(0);
   const [grammarData, setGrammarData] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
   const [inputText, setInputText] = useState('');
+  const [completedExercises, setCompletedExercises] = useState({});
 
   // Charger les données de grammaire
   useEffect(() => {
     const data = getGrammarDataByLevel(level);
     setGrammarData(data);
+    
+    // Initialiser le suivi des exercices complétés
+    if (data && data.length > 0) {
+      const initialCompletedExercises = {};
+      data.forEach((_, index) => {
+        initialCompletedExercises[index] = [];
+      });
+      setCompletedExercises(initialCompletedExercises);
+    }
   }, [level]);
 
   // Obtenir la règle et les exercices actuels
@@ -75,18 +90,88 @@ const GrammarExercise = ({ navigation }) => {
     handleGoBack,
     canGoToNext,
     canGoToPrevious,
-    canCheckAnswer
+    canCheckAnswer,
+    completedItems
   } = useExerciseState({
-    type: 'grammar',
+    type: EXERCISE_TYPES.GRAMMAR,
     level,
     exercises: currentRule.exercises,
     navigation,
-    checkAnswerFn: checkGrammarAnswer
+    checkAnswerFn: checkGrammarAnswer,
+    autoSaveProgress: false // Nous allons gérer manuellement la progression
   });
+
+  // Mettre à jour la progression quand une réponse est correcte
+  useEffect(() => {
+    if (showFeedback && isCorrect) {
+      // Mettre à jour l'état local des exercices complétés
+      if (!completedExercises[selectedRuleIndex]) {
+        completedExercises[selectedRuleIndex] = [];
+      }
+      
+      if (!completedExercises[selectedRuleIndex].includes(currentExerciseIndex)) {
+        const newCompletedExercises = { ...completedExercises };
+        newCompletedExercises[selectedRuleIndex] = [
+          ...newCompletedExercises[selectedRuleIndex],
+          currentExerciseIndex
+        ];
+        setCompletedExercises(newCompletedExercises);
+        
+        // Mettre à jour la progression
+        updateGrammarProgress(newCompletedExercises);
+      }
+    }
+  }, [showFeedback, isCorrect, currentExerciseIndex, selectedRuleIndex]);
+  
+  // Fonction pour mettre à jour la progression de grammaire
+  const updateGrammarProgress = (exercisesData = completedExercises) => {
+    if (!grammarData || grammarData.length === 0) return;
+    
+    // Pour la règle actuelle
+    const currentRuleId = currentRule.id || `rule_${selectedRuleIndex}`;
+    const currentRuleExercisesCompleted = exercisesData[selectedRuleIndex]?.length || 0;
+    const currentRuleExercisesTotal = currentRule.exercises?.length || 0;
+    
+    // Mettre à jour la progression pour cette règle spécifique
+    if (currentRuleExercisesTotal > 0) {
+      updateProgress(
+        `grammar_${level.toLowerCase()}_${currentRuleId}`,
+        EXERCISE_TYPES.GRAMMAR,
+        level,
+        currentRuleExercisesCompleted,
+        currentRuleExercisesTotal
+      );
+    }
+    
+    // Calculer la progression globale pour toutes les règles
+    let totalAllExercises = 0;
+    let completedAllExercises = 0;
+    
+    grammarData.forEach((rule, ruleIndex) => {
+      if (rule.exercises) {
+        totalAllExercises += rule.exercises.length;
+        completedAllExercises += exercisesData[ruleIndex]?.length || 0;
+      }
+    });
+    
+    // Mettre à jour la progression globale de grammaire
+    if (totalAllExercises > 0) {
+      updateProgress(
+        `grammar_${level.toLowerCase()}`,
+        EXERCISE_TYPES.GRAMMAR,
+        level,
+        completedAllExercises,
+        totalAllExercises
+      );
+    }
+  };
 
   // Changer de règle grammaticale
   const handleRuleChange = (index) => {
     if (index !== selectedRuleIndex) {
+      // Sauvegarder la progression avant de changer de règle
+      updateGrammarProgress();
+      
       setSelectedRuleIndex(index);
       resetExerciseState();
       setCurrentExerciseIndex(0);
@@ -103,6 +188,15 @@ const GrammarExercise = ({ navigation }) => {
       setUserAnswer(inputText);
     }
   }, [selectedOption, inputText, currentExercise, setUserAnswer]);
+  
+  // Fonction personnalisée pour aller à l'exercice suivant avec mise à jour de la progression
+  const handleNextExercise = () => {
+    // Si c'est le dernier exercice de cette règle, mettre à jour la progression
+    if (isLastExercise) {
+      updateGrammarProgress();
+    }
+    goToNextExercise();
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -169,7 +263,7 @@ const GrammarExercise = ({ navigation }) => {
         isCorrect={isCorrect}
         attempts={attempts}
         onCheck={checkAnswer}
-        onNext={goToNextExercise}
+        onNext={handleNextExercise}
         onPrevious={goToPreviousExercise}
         onRetry={retryExercise}
         isLastExercise={isLastExercise}

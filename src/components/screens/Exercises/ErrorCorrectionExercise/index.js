@@ -11,7 +11,9 @@ import ResultsMode from './components/ResultsMode';
 
 // Import des hooks personnalisés
 import { useExerciseState, useAnimations } from '../../../hooks/common';
+import useProgress from '../../../hooks/useProgress'; // Ajout du hook de progression
 import { getErrorCorrectionDataByLevel } from './utils/dataUtils';
+import { EXERCISE_TYPES } from '../../../constants/exercicesTypes'; // Ajout des constantes de types d'exercices
 
 // Import des styles
 import styles from './style';
@@ -22,6 +24,9 @@ import styles from './style';
 const ErrorCorrectionExercise = ({ navigation }) => {
   const route = useRoute();
   const { level } = route.params || { level: 'A1' };
+  
+  // Utiliser le hook de progression
+  const { updateProgress } = useProgress();
   
   // États spécifiques à la correction d'erreurs
   const [viewMode, setViewMode] = useState('browse'); // 'browse', 'exercise', 'results'
@@ -92,12 +97,12 @@ const ErrorCorrectionExercise = ({ navigation }) => {
     canCheckAnswer,
     completedItems
   } = useExerciseState({
-    type: 'error_correction',
+    type: EXERCISE_TYPES.ERROR_CORRECTION,
     level,
     exercises,
     navigation,
     checkAnswerFn: checkErrorCorrection,
-    autoSaveProgress: viewMode === 'exercise'
+    autoSaveProgress: false // On va gérer manuellement la progression
   });
   
   // Mise à jour de la réponse utilisateur en fonction du mode
@@ -110,6 +115,56 @@ const ErrorCorrectionExercise = ({ navigation }) => {
       setUserAnswer(selectedChoiceIndex);
     }
   }, [correctionMode, userCorrection, selectedErrorIndices, selectedChoiceIndex, setUserAnswer]);
+  
+  // Mise à jour de la progression quand une réponse est correcte
+  useEffect(() => {
+    if (viewMode === 'exercise' && showFeedback && isCorrect) {
+      // Calculer la progression
+      const completedCount = completedItems.length;
+      const totalExercises = exercises.length;
+      
+      // Identifier cette catégorie spécifique pour la progression
+      const categoryId = selectedCategory || 'default';
+      
+      // Mettre à jour la progression pour cette catégorie spécifique
+      updateProgress(
+        `error_correction_${level.toLowerCase()}_${categoryId}`,
+        EXERCISE_TYPES.ERROR_CORRECTION,
+        level,
+        completedCount,
+        totalExercises
+      );
+      
+      // Calculer la progression globale pour la correction d'erreurs
+      let totalAllExercises = 0;
+      let completedAllExercises = 0;
+      
+      exercisesData.categories.forEach((category) => {
+        if (category.exercises) {
+          const catExercises = category.exercises.length;
+          totalAllExercises += catExercises;
+          
+          // Si c'est la catégorie actuelle, utiliser completedItems
+          if (category.id === categoryId) {
+            completedAllExercises += completedCount;
+          } else {
+            // Ici, vous pourriez ajouter une logique pour récupérer les exercices 
+            // complétés des autres catégories depuis un stockage persistant
+            completedAllExercises += 0; // Pour l'instant, supposons 0
+          }
+        }
+      });
+      
+      // Mettre à jour la progression globale
+      updateProgress(
+        `error_correction_${level.toLowerCase()}`,
+        EXERCISE_TYPES.ERROR_CORRECTION,
+        level,
+        completedAllExercises,
+        totalAllExercises
+      );
+    }
+  }, [viewMode, showFeedback, isCorrect, completedItems.length, exercises.length, level, selectedCategory, exercisesData.categories, updateProgress]);
   
   // Démarrer un exercice
   const startExercise = (mode) => {
@@ -149,6 +204,16 @@ const ErrorCorrectionExercise = ({ navigation }) => {
         exercise: exercises[index],
         isCorrect: true
       }))]);
+      
+      // Mettre à jour une dernière fois la progression
+      updateProgress(
+        `error_correction_${level.toLowerCase()}_${selectedCategory || 'default'}`,
+        EXERCISE_TYPES.ERROR_CORRECTION,
+        level,
+        completedItems.length,
+        exercises.length
+      );
+      
       setViewMode('results');
     } else {
       goToNext();

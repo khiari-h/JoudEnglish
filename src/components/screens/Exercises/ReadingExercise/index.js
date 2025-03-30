@@ -14,8 +14,10 @@ import ActionButtons from './components/ActionButtons';
 
 // Import des hooks personnalisés
 import { useExerciseState, useAnimations } from '../../../hooks/common';
+import useProgress from '../../../hooks/useProgress'; // Ajout du hook de progression
 import useReadingTextInteraction from './hooks/useReadingTextInteraction';
 import { getReadingDataByLevel } from './utils/dataUtils';
+import { EXERCISE_TYPES } from '../../../constants/exercicesTypes'; // Ajout des constantes de types d'exercices
 
 // Import des styles
 import styles from './style';
@@ -27,6 +29,9 @@ const ReadingExercise = ({ navigation }) => {
   const route = useRoute();
   const { level } = route.params || { level: 'A1' };
   
+  // Utiliser le hook de progression
+  const { updateProgress } = useProgress();
+  
   // Références pour les ScrollViews
   const scrollViewRef = useRef(null);
   const textsScrollViewRef = useRef(null);
@@ -35,6 +40,7 @@ const ReadingExercise = ({ navigation }) => {
   const [readingData, setReadingData] = useState([]);
   const [selectedExerciseIndex, setSelectedExerciseIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [completedQuestions, setCompletedQuestions] = useState({});
   
   // Animations
   const { fadeAnim, slideAnim, animateIn, resetAnimations } = useAnimations();
@@ -43,6 +49,15 @@ const ReadingExercise = ({ navigation }) => {
   useEffect(() => {
     const data = getReadingDataByLevel(level);
     setReadingData(data);
+    
+    // Initialiser le suivi des questions complétées
+    if (data && data.length > 0) {
+      const initialCompletedQuestions = {};
+      data.forEach((_, index) => {
+        initialCompletedQuestions[index] = [];
+      });
+      setCompletedQuestions(initialCompletedQuestions);
+    }
   }, [level]);
   
   // Obtenir l'exercice de lecture actuel
@@ -87,14 +102,79 @@ const ReadingExercise = ({ navigation }) => {
     handleGoBack,
     canGoToNext,
     canGoToPrevious,
-    canCheckAnswer
+    canCheckAnswer,
+    completedItems
   } = useExerciseState({
-    type: 'reading',
+    type: EXERCISE_TYPES.READING,
     level,
     exercises: currentExercise.questions,
     navigation,
-    checkAnswerFn: checkReadingAnswer
+    checkAnswerFn: checkReadingAnswer,
+    autoSaveProgress: false // Nous allons gérer manuellement la progression
   });
+  
+  // Mettre à jour la progression quand une réponse est correcte
+  useEffect(() => {
+    if (showFeedback && isCorrect) {
+      // Mettre à jour l'état local des questions complétées
+      const newCompletedQuestions = { ...completedQuestions };
+      
+      if (!newCompletedQuestions[selectedExerciseIndex]) {
+        newCompletedQuestions[selectedExerciseIndex] = [];
+      }
+      
+      if (!newCompletedQuestions[selectedExerciseIndex].includes(currentQuestionIndex)) {
+        newCompletedQuestions[selectedExerciseIndex].push(currentQuestionIndex);
+        setCompletedQuestions(newCompletedQuestions);
+        
+        // Mettre à jour la progression
+        updateReadingProgress(newCompletedQuestions);
+      }
+    }
+  }, [showFeedback, isCorrect, currentQuestionIndex, selectedExerciseIndex]);
+  
+  // Fonction pour mettre à jour la progression de lecture
+  const updateReadingProgress = (questionsData = completedQuestions) => {
+    if (!readingData || readingData.length === 0) return;
+    
+    // Pour le texte actuel
+    const currentTextId = currentExercise.id || `text_${selectedExerciseIndex}`;
+    const currentTextQuestionsCompleted = questionsData[selectedExerciseIndex]?.length || 0;
+    const currentTextQuestionsTotal = currentExercise.questions?.length || 0;
+    
+    // Mettre à jour la progression pour ce texte spécifique
+    if (currentTextQuestionsTotal > 0) {
+      updateProgress(
+        `reading_${level.toLowerCase()}_${currentTextId}`,
+        EXERCISE_TYPES.READING,
+        level,
+        currentTextQuestionsCompleted,
+        currentTextQuestionsTotal
+      );
+    }
+    
+    // Calculer la progression globale pour tous les textes
+    let totalAllQuestions = 0;
+    let completedAllQuestions = 0;
+    
+    readingData.forEach((text, textIndex) => {
+      if (text.questions) {
+        totalAllQuestions += text.questions.length;
+        completedAllQuestions += questionsData[textIndex]?.length || 0;
+      }
+    });
+    
+    // Mettre à jour la progression globale de lecture
+    if (totalAllQuestions > 0) {
+      updateProgress(
+        `reading_${level.toLowerCase()}`,
+        EXERCISE_TYPES.READING,
+        level,
+        completedAllQuestions,
+        totalAllQuestions
+      );
+    }
+  };
   
   // Réinitialiser l'animation quand la question change
   useEffect(() => {
@@ -111,6 +191,9 @@ const ReadingExercise = ({ navigation }) => {
   // Changer de texte de lecture
   const handleTextChange = (index) => {
     if (index !== selectedExerciseIndex) {
+      // Sauvegarder la progression avant de changer de texte
+      updateReadingProgress();
+      
       setSelectedExerciseIndex(index);
       setCurrentQuestionIndex(0);
       setSelectedAnswer(null);
@@ -123,6 +206,15 @@ const ReadingExercise = ({ navigation }) => {
         });
       }
     }
+  };
+  
+  // Fonction personnalisée pour aller à la question suivante avec mise à jour
+  const handleNextQuestion = () => {
+    // Si c'est la dernière question, mettre à jour la progression
+    if (isLastQuestion) {
+      updateReadingProgress();
+    }
+    goToNextQuestion();
   };
 
   return (
@@ -197,7 +289,7 @@ const ReadingExercise = ({ navigation }) => {
         <QuestionIndicators
           totalQuestions={currentExercise.questions?.length || 0}
           currentIndex={currentQuestionIndex}
-          completedQuestions={[]}
+          completedQuestions={completedQuestions[selectedExerciseIndex] || []}
           onSelectQuestion={setCurrentQuestionIndex}
           levelColor={levelColor}
         />
@@ -212,7 +304,7 @@ const ReadingExercise = ({ navigation }) => {
         canGoPrevious={canGoToPrevious}
         isLastQuestion={isLastQuestion}
         onSubmit={checkAnswer}
-        onNext={goToNextQuestion}
+        onNext={handleNextQuestion} // Utiliser notre fonction personnalisée
         onPrevious={goToPreviousQuestion}
         onRetry={retryExercise}
         levelColor={levelColor}

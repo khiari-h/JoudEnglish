@@ -19,8 +19,10 @@ import CategorizationGame from './components/games/CategorizationGame';
 
 // Import des hooks personnalisés
 import { useExerciseState, useAnimations } from '../../../hooks/common';
+import useProgress from '../../../hooks/useProgress'; // Ajout du hook de progression
 import useGameTimer from './hooks/useGameTimer';
 import { getWordGamesDataByLevel } from './utils/dataUtils';
+import { EXERCISE_TYPES } from '../../../constants/exercicesTypes'; // Ajout des constantes de types d'exercices
 
 // Import des styles
 import styles from './style';
@@ -37,6 +39,9 @@ const WordGamesExercise = ({ navigation }) => {
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   const [gameResults, setGameResults] = useState([]);
+  
+  // Utiliser le hook de progression pour mettre à jour l'avancement
+  const { updateProgress } = useProgress();
   
   // Animations
   const { bounceAnim, pulse } = useAnimations({
@@ -79,12 +84,12 @@ const WordGamesExercise = ({ navigation }) => {
     handleGoBack,
     isLastExercise: isLastGame
   } = useExerciseState({
-    type: 'word_games',
+    type: EXERCISE_TYPES.WORD_GAMES,
     level,
     exercises: gamesData.games || [],
     navigation,
     checkAnswerFn: checkGameAnswer,
-    autoSaveProgress: false
+    autoSaveProgress: false // On va gérer la progression manuellement
   });
   
   // Quand le jeu change, configurer le timer si nécessaire
@@ -103,7 +108,7 @@ const WordGamesExercise = ({ navigation }) => {
     // Logique pour gérer la fin du temps
   }
   
-  // Gérer la complétion d'un jeu
+  // Gérer la complétion d'un jeu et mettre à jour la progression
   const handleGameComplete = (isSuccessful, earnedScore, maxPossibleScore) => {
     stopTimer();
     
@@ -120,9 +125,40 @@ const WordGamesExercise = ({ navigation }) => {
         maxScore: maxPossibleScore,
         completed: true,
       };
+      
+      // Calculer et mettre à jour la progression globale
+      const completedGames = newResults.filter(result => result.completed).length;
+      const totalGames = gamesData.games?.length || 0;
+      
+      // Mettre à jour la progression dans le système global
+      updateProgress(
+        `word_games_${level.toLowerCase()}`, // ID unique pour ce type et niveau
+        EXERCISE_TYPES.WORD_GAMES,          // Type d'exercice
+        level,                              // Niveau (A1, A2, etc.)
+        completedGames,                     // Nombre d'éléments complétés
+        totalGames                          // Nombre total d'éléments
+      );
+      
       return newResults;
     });
   };
+  
+  // Mettre à jour la progression lorsque tous les jeux sont terminés
+  useEffect(() => {
+    if (showResults) {
+      const completedGames = gameResults.filter(result => result.completed).length;
+      const totalGames = gamesData.games?.length || 0;
+      
+      // Mettre à jour la progression finale
+      updateProgress(
+        `word_games_${level.toLowerCase()}`,
+        EXERCISE_TYPES.WORD_GAMES,
+        level,
+        completedGames,
+        totalGames
+      );
+    }
+  }, [showResults, gameResults, gamesData.games, level, updateProgress]);
   
   // Aller au jeu suivant ou afficher les résultats
   const handleNext = () => {

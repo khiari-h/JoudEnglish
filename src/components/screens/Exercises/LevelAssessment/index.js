@@ -14,7 +14,9 @@ import ResultsScreen from './components/ResultsScreen';
 
 // Import des hooks personnalisés
 import { useExerciseState, useAnimations } from '../../../hooks/common';
+import useProgress from '../../../hooks/useProgress'; // Ajout du hook de progression
 import { getAssessmentDataByLevel } from './utils/levelUtils';
+import { EXERCISE_TYPES } from '../../../constants/exercicesTypes'; // Ajout des constantes de types d'exercices
 
 // Import des styles
 import styles from './style';
@@ -25,6 +27,9 @@ import styles from './style';
 const LevelAssessment = ({ navigation }) => {
   const route = useRoute();
   const { level } = route.params || { level: 'A1' };
+  
+  // Utiliser le hook de progression
+  const { updateProgress } = useProgress();
   
   // États spécifiques à l'évaluation
   const [assessmentData, setAssessmentData] = useState({ sections: [] });
@@ -50,8 +55,52 @@ const LevelAssessment = ({ navigation }) => {
     return userAnswer === question.correctAnswer;
   };
   
+  // Fonction pour mettre à jour la progression
+  const updateAssessmentProgress = () => {
+    if (!assessmentData || !assessmentData.sections) return;
+    
+    // Calculer le nombre total de questions et de réponses correctes
+    let totalQuestions = 0;
+    let correctAnswers = 0;
+    
+    assessmentData.sections.forEach((section, sectionIndex) => {
+      if (section.questions) {
+        totalQuestions += section.questions.length;
+        
+        // Ajouter les réponses correctes de cette section
+        if (scores[sectionIndex]) {
+          correctAnswers += scores[sectionIndex].filter(Boolean).length;
+        }
+      }
+    });
+    
+    // Calculer le pourcentage de progression pour cette section
+    const sectionTitle = currentSectionData.title || `section_${currentSection}`;
+    
+    // Mettre à jour la progression pour la section actuelle
+    updateProgress(
+      `assessment_${level.toLowerCase()}_${sectionTitle.toLowerCase().replace(/\s+/g, '_')}`,
+      EXERCISE_TYPES.EVALUATION,
+      level,
+      scores[currentSection]?.filter(Boolean).length || 0,
+      currentSectionData.questions?.length || 0
+    );
+    
+    // Mettre à jour la progression globale de l'évaluation
+    updateProgress(
+      `assessment_${level.toLowerCase()}`,
+      EXERCISE_TYPES.EVALUATION,
+      level,
+      correctAnswers,
+      totalQuestions
+    );
+  };
+  
   // Fonction pour passer à la section suivante
   const handleSectionComplete = () => {
+    // Mettre à jour la progression avant de passer à la section suivante
+    updateAssessmentProgress();
+    
     if (currentSection < assessmentData.sections.length - 1) {
       // Passer à la section suivante
       setCurrentSection(currentSection + 1);
@@ -88,12 +137,13 @@ const LevelAssessment = ({ navigation }) => {
     canGoToPrevious,
     canCheckAnswer
   } = useExerciseState({
-    type: 'assessment',
+    type: EXERCISE_TYPES.EVALUATION,
     level,
     exercises: currentSectionData.questions,
     navigation,
     checkAnswerFn: checkAssessmentAnswer,
-    onComplete: handleSectionComplete
+    onComplete: handleSectionComplete,
+    autoSaveProgress: false // Nous allons gérer manuellement la progression
   });
   
   // Mettre à jour le score quand une réponse est correcte
@@ -102,13 +152,23 @@ const LevelAssessment = ({ navigation }) => {
       setScores(prevScores => {
         const sectionScores = prevScores[currentSection] || [];
         sectionScores[currentQuestionIndex] = true;
-        return {
+        
+        const newScores = {
           ...prevScores,
           [currentSection]: sectionScores
         };
+        
+        return newScores;
       });
     }
   }, [showFeedback, isCorrect, currentSection, currentQuestionIndex]);
+  
+  // Mettre à jour la progression lorsque le score change
+  useEffect(() => {
+    if (Object.keys(scores).length > 0) {
+      updateAssessmentProgress();
+    }
+  }, [scores]);
   
   // Mettre à jour la réponse utilisateur
   useEffect(() => {
@@ -141,11 +201,23 @@ const LevelAssessment = ({ navigation }) => {
   
   // Si on affiche les résultats
   if (showResults) {
+    // Mettre à jour une dernière fois la progression
+    const score = calculateTotalScore();
+    
+    // Mettre à jour la progression globale avec le score total
+    updateProgress(
+      `assessment_${level.toLowerCase()}_final`,
+      EXERCISE_TYPES.EVALUATION,
+      level,
+      score.correct,
+      score.total
+    );
+    
     return (
       <ResultsScreen
         level={level}
         levelColor={levelColor}
-        score={calculateTotalScore()}
+        score={score}
         navigation={navigation}
       />
     );
