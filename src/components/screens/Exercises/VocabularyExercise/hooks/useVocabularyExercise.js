@@ -1,21 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Animated } from 'react-native';
 
-// Import data
-import vocabularyA1Data from "../../../../data/exercises/vocabulary/vocabularyA1";
-import vocabularyA2Data from "../../../../data/exercises/vocabulary/vocabularyA2";
-import vocabularyB1Data from "../../../../data/exercises/vocabulary/vocabularyB1";
-import vocabularyB2Data from "../../../../data/exercises/vocabulary/vocabularyB2";
-import vocabularyC1Data from "../../../../data/exercises/vocabulary/vocabularyC1";
-import vocabularyC2Data from "../../../../data/exercises/vocabulary/vocabularyC2";
-
 // Import hooks and utilities
 import { useWordCardAnimation } from './useWordCardAnimation';
 import { useVocabularyNavigation } from './useVocabularyNavigation';
 import { getLevelColor } from '../utils/levelUtils';
+import { getVocabularyDataByLevel } from '../utils/dataUtils';
 
 /**
  * Main hook for vocabulary exercise functionality
+ * 
+ * @param {string} level - Le niveau de langue (A1, A2, B1, etc.)
+ * @param {Object} navigation - Objet de navigation React Navigation
+ * @returns {Object} Données, états et fonctions pour l'exercice de vocabulaire
  */
 export const useVocabularyExercise = (level, navigation) => {
   // States
@@ -32,30 +29,17 @@ export const useVocabularyExercise = (level, navigation) => {
   // Get color based on level
   const levelColor = getLevelColor(level);
 
-  // Get vocabulary data for the current level
-  const getVocabularyData = useCallback((level) => {
-    const dataMap = {
-      A1: vocabularyA1Data,
-      A2: vocabularyA2Data,
-      B1: vocabularyB1Data,
-      B2: vocabularyB2Data,
-      C1: vocabularyC1Data,
-      C2: vocabularyC2Data,
-    };
-    return dataMap[level] || vocabularyA1Data;
-  }, []);
-
-  // Get all data needed for the current state
-  const vocabularyData = getVocabularyData(level);
-  const categories = vocabularyData.exercises;
-  const currentCategory = categories[selectedCategoryIndex];
-  const currentWord = currentCategory?.words[currentWordIndex];
-  const totalWords = currentCategory?.words.length || 0;
+  // Get vocabulary data for the current level (utilisant dataUtils)
+  const vocabularyData = getVocabularyDataByLevel(level);
+  const categories = vocabularyData.categories || [];
+  const currentCategory = categories[selectedCategoryIndex] || { words: [] };
+  const currentWord = currentCategory.words?.[currentWordIndex];
+  const totalWords = currentCategory.words?.length || 0;
   
   // Initialize tracking for completed words
   useEffect(() => {
     const initialCompletedWords = {};
-    vocabularyData.exercises.forEach((category, categoryIndex) => {
+    categories.forEach((_, categoryIndex) => {
       initialCompletedWords[categoryIndex] = [];
     });
     
@@ -63,12 +47,12 @@ export const useVocabularyExercise = (level, navigation) => {
     if (Object.keys(completedWords).length === 0) {
       setCompletedWords(initialCompletedWords);
     }
-  }, [vocabularyData]);
+  }, [categories]);
 
   // Animate card when word changes
   useEffect(() => {
     animateCard();
-  }, [currentWordIndex, selectedCategoryIndex]);
+  }, [currentWordIndex, selectedCategoryIndex, animateCard]);
 
   // Check if current word is completed
   const isCurrentWordCompleted = useCallback(() => {
@@ -124,7 +108,7 @@ export const useVocabularyExercise = (level, navigation) => {
     handleNext, 
     handlePrevious, 
     handleWordSelection 
-  } = useVocabularyNavigation(
+  } = useVocabularyNavigation({
     currentWordIndex,
     totalWords,
     setCurrentWordIndex,
@@ -136,7 +120,7 @@ export const useVocabularyExercise = (level, navigation) => {
     setSelectedCategoryIndex,
     completedWords,
     navigation
-  );
+  });
 
   // Calculate progress
   const progress = calculateProgress();
