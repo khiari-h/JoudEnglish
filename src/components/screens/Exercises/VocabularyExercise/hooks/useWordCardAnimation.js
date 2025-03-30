@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useAnimations } from "../../../../../hooks/common/useAnimations";
+import useAnimations from "../../../../../hooks/common/useAnimations";
 
 /**
  * Hook pour gérer les animations des cartes de vocabulaire
