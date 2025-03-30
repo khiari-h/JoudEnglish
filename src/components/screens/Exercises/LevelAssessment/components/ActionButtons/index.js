@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import styles from './style';
-import Button from '../../../../../common/Button';
+import Button from '../../../../../ui/Button';
 
 /**
  * Composant pour les boutons d'action dans l'évaluation

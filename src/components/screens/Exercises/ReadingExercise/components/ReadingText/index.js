@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import styles from './style';
-import Button from '../../../../../common/Button';
+import Button from '../../../../../ui/Button';
 
 /**
  * Composant pour afficher le texte de lecture

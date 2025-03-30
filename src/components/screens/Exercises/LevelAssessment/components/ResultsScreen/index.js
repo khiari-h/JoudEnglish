@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, SafeAreaView } from 'react-native';
 import styles from './style';
-import Button from '../../../../../common/Button';
+import Button from '../../../../../ui/Button';
 
 /**
  * Écran de résultats pour l'évaluation de niveau
