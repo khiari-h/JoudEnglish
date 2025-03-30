@@ -1,88 +1,70 @@
-import { useProgressContext } from '../contexts/ProgressContext';
-import { useNavigation } from '@react-navigation/native';
-import { EXERCISE_ROUTES } from '../constants/exercicesTypes';
+import { useProgressContext } from "../contexts/ProgressContext";
+import { useNavigation } from "@react-navigation/native";
+import { EXERCISE_ROUTES } from "../constants/exercicesTypes";
+import { useCallback } from "react";
 
-/**
- * Hook principal pour accéder et manipuler les données de progression
- * @returns {Object} Fonctions et données pour gérer la progression
- */
 export const useProgress = () => {
-  const { progressData, isLoading, updateExerciseProgress } = useProgressContext();
+  const { progressData, isLoading, updateExerciseProgress } =
+    useProgressContext();
   const navigation = useNavigation();
 
-  /**
-   * Récupère la dernière activité de l'utilisateur
-   * @returns {Object|null} Dernière activité ou null
-   */
-  const getLastActivity = () => {
-    return progressData.lastActivity;
-  };
+  // Mémoriser les fonctions pour qu'elles conservent la même référence
+  const getLastActivity = useCallback(() => {
+    return progressData?.lastActivity;
+  }, [progressData?.lastActivity]);
 
-  /**
-   * Récupère la progression d'un niveau spécifique
-   * @param {string} level - Le niveau (A1, A2, etc.)
-   * @returns {number} Pourcentage de progression
-   */
-  const getLevelProgress = (level) => {
-    return progressData.levelProgress[level] || 0;
-  };
+  const getLevelProgress = useCallback(
+    (level) => {
+      return progressData?.levelProgress?.[level] || 0;
+    },
+    [progressData?.levelProgress]
+  );
 
-  /**
-   * Récupère la progression de tous les niveaux
-   * @returns {Object} Progression par niveau
-   */
-  const getAllLevelProgress = () => {
-    return progressData.levelProgress;
-  };
+  const getAllLevelProgress = useCallback(() => {
+    return progressData?.levelProgress || {};
+  }, [progressData?.levelProgress]);
 
-  /**
-   * Récupère la progression d'un type d'exercice dans un niveau
-   * @param {string} type - Type d'exercice (vocabulary, grammar, etc.)
-   * @param {string} level - Niveau (A1, A2, etc.)
-   * @returns {number} Pourcentage de progression
-   */
-  const getExerciseTypeProgress = (type, level) => {
-    return progressData.exerciseTypeProgress[level]?.[type] || 0;
-  };
+  const getExerciseTypeProgress = useCallback(
+    (type, level) => {
+      return progressData?.exerciseTypeProgress?.[level]?.[type] || 0;
+    },
+    [progressData?.exerciseTypeProgress]
+  );
 
-  /**
-   * Récupère la progression d'un exercice spécifique
-   * @param {string} exerciseId - Identifiant de l'exercice
-   * @returns {Object|null} Données de progression ou null
-   */
-  const getExerciseProgress = (exerciseId) => {
-    return progressData.exerciseProgress[exerciseId] || null;
-  };
+  const getExerciseProgress = useCallback(
+    (exerciseId) => {
+      return progressData?.exerciseProgress?.[exerciseId] || null;
+    },
+    [progressData?.exerciseProgress]
+  );
 
-  /**
-   * Reprend la dernière activité
-   */
-  const resumeLastActivity = () => {
+  // Fonction pour reprendre la dernière activité
+  const resumeLastActivity = useCallback(() => {
     const activity = getLastActivity();
     if (!activity) return;
 
     // Utilisation du mapping EXERCISE_ROUTES pour éviter la duplication
     const route = EXERCISE_ROUTES[activity.type];
-    
+
     if (route) {
-      navigation.navigate(route, { 
-        level: activity.level, 
-        exerciseId: activity.id
+      navigation.navigate(route, {
+        level: activity.level,
+        exerciseId: activity.id,
       });
     }
-  };
+  }, [getLastActivity, navigation]);
 
-  /**
-   * Met à jour la progression d'un exercice
-   * @param {string} exerciseId - Identifiant de l'exercice
-   * @param {string} type - Type d'exercice
-   * @param {string} level - Niveau
-   * @param {number} completed - Nombre d'éléments complétés
-   * @param {number} total - Nombre total d'éléments
-   */
-  const updateProgress = (exerciseId, type, level, completed, total) => {
-    updateExerciseProgress(exerciseId, type, level, completed, total);
-  };
+  // Fonction pour mettre à jour la progression
+  const updateProgress = useCallback(
+    (exerciseId, type, level, completed, total) => {
+      if (typeof updateExerciseProgress === "function") {
+        updateExerciseProgress(exerciseId, type, level, completed, total);
+      } else {
+        console.warn("updateExerciseProgress is not available");
+      }
+    },
+    [updateExerciseProgress]
+  );
 
   return {
     isLoading,
@@ -92,7 +74,7 @@ export const useProgress = () => {
     getExerciseTypeProgress,
     getExerciseProgress,
     updateProgress,
-    resumeLastActivity
+    resumeLastActivity,
   };
 };
 

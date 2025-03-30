@@ -1,8 +1,8 @@
-// ExerciseSelection/index.js
-import React, { useEffect, useState } from "react";
+// ExerciseSelection/index.js - Version avec le nouveau ExerciseCardItem
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import ExerciseCard from "./ExerciceCard";
+import ExerciseCardItem from "./ExerciseCardItem";
 import { getLevelColor, getExercises, exerciseRoutes } from "./data";
 import styles from "./style";
 import useProgress from "../../../hooks/useProgress";
@@ -18,15 +18,23 @@ const ExerciseSelection = ({ route }) => {
   // Obtenir la couleur du niveau
   const levelColor = getLevelColor(level);
 
+  // Mémoriser les exercices de base pour éviter de les recalculer à chaque rendu
+  const baseExercises = useMemo(() => getExercises(levelColor), [levelColor]);
+
+  // Créer une version stable de la fonction getExerciseTypeProgress
+  const stableGetProgress = useCallback(
+    (type, level) => {
+      return getExerciseTypeProgress(type, level);
+    },
+    [getExerciseTypeProgress]
+  );
+
   // Charger les exercices avec leur progression
   useEffect(() => {
-    // Récupérer la liste statique des exercices
-    const baseExercises = getExercises(levelColor);
-
     // Enrichir avec les données de progression
     const updatedExercises = baseExercises.map((exercise) => {
       // Obtenir la progression pour ce type d'exercice et ce niveau
-      const progress = getExerciseTypeProgress(exercise.id, level) || 0;
+      const progress = stableGetProgress(exercise.id, level) || 0;
 
       // Renvoyer l'exercice avec sa progression réelle
       return {
@@ -36,7 +44,10 @@ const ExerciseSelection = ({ route }) => {
     });
 
     setExercisesWithProgress(updatedExercises);
-  }, [level, levelColor, getExerciseTypeProgress]);
+
+    // Pour le débogage - vérifier si nous avons des données
+    console.log("Exercises with progress:", updatedExercises);
+  }, [level, baseExercises, stableGetProgress]);
 
   // Fonction pour naviguer vers l'exercice approprié
   const navigateToExercise = (exerciseId) => {
@@ -61,9 +72,16 @@ const ExerciseSelection = ({ route }) => {
         </Text>
       </View>
 
+      {/* Message de débogage pour vérifier si des exercices sont disponibles */}
+      {exercisesWithProgress.length === 0 && (
+        <Text style={{ textAlign: "center", padding: 20, color: "#666" }}>
+          Loading exercises...
+        </Text>
+      )}
+
       <View style={styles.exercisesContainer}>
         {exercisesWithProgress.map((exercise, index) => (
-          <ExerciseCard
+          <ExerciseCardItem
             key={exercise.id}
             exercise={exercise}
             isLast={index === exercisesWithProgress.length - 1}
