@@ -1,8 +1,6 @@
+// src/components/screens/Exercises/GrammarExercise/hooks/useGrammarExercise.js
 import { useState, useEffect } from 'react';
-
-// Import des données de grammaire par niveau
-import grammarA1 from "../../../../data/exercises/grammar/grammarA1";
-// Futurs niveaux: import grammarA2 from "../../../../data/exercises/grammar/grammarA2"; etc.
+import { getGrammarDataByLevel } from '../utils/dataUtils';
 
 /**
  * Hook personnalisé pour gérer l'état et la logique des exercices de grammaire
@@ -20,18 +18,26 @@ export const useGrammarExercise = (level) => {
   const [inputText, setInputText] = useState('');
   const [isCorrect, setIsCorrect] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const [grammarData, setGrammarData] = useState(null);
+  const [completedExercises, setCompletedExercises] = useState({});
 
-  // Récupérer les données de grammaire en fonction du niveau
-  const getGrammarData = (level) => {
-    switch(level) {
-      case 'A1': return grammarA1;
-      // Futurs niveaux: case 'A2': return grammarA2; etc.
-      default: return grammarA1;
+  // Charger les données de grammaire
+  useEffect(() => {
+    const data = getGrammarDataByLevel(level);
+    setGrammarData(data);
+
+    // Initialiser le suivi des exercices complétés
+    if (data && data.categories && data.categories.length > 0) {
+      const initialCompletedExercises = {};
+      data.categories.forEach((_, index) => {
+        initialCompletedExercises[index] = [];
+      });
+      setCompletedExercises(initialCompletedExercises);
     }
-  };
+  }, [level]);
 
-  const grammarData = getGrammarData(level);
-  const currentRule = grammarData[selectedRuleIndex];
+  // Obtenir la règle et les exercices actuels
+  const currentRule = grammarData?.categories?.[selectedRuleIndex] || { exercises: [] };
   const currentExercise = currentRule?.exercises?.[currentExerciseIndex];
   const isLastExercise = currentExerciseIndex === (currentRule?.exercises?.length - 1);
   const progress = ((currentExerciseIndex + (showFeedback && isCorrect ? 1 : 0)) / (currentRule?.exercises?.length || 1)) * 100;
@@ -86,6 +92,27 @@ export const useGrammarExercise = (level) => {
 
     setUserAnswers([...userAnswers, answer]);
     setShowFeedback(true);
+    
+    // Mettre à jour les exercices complétés
+    if (correct) {
+      updateCompletedExercises(currentExerciseIndex);
+    }
+  };
+  
+  // Mettre à jour les exercices complétés
+  const updateCompletedExercises = (exerciseIndex) => {
+    if (!completedExercises[selectedRuleIndex]) {
+      completedExercises[selectedRuleIndex] = [];
+    }
+
+    if (!completedExercises[selectedRuleIndex].includes(exerciseIndex)) {
+      const newCompletedExercises = { ...completedExercises };
+      newCompletedExercises[selectedRuleIndex] = [
+        ...newCompletedExercises[selectedRuleIndex],
+        exerciseIndex
+      ];
+      setCompletedExercises(newCompletedExercises);
+    }
   };
 
   // Retenter un exercice
@@ -99,6 +126,31 @@ export const useGrammarExercise = (level) => {
       setSelectedOption(null);
     }
   };
+  
+  // Passer à l'exercice suivant
+  const goToNextExercise = () => {
+    if (currentExerciseIndex < currentRule.exercises.length - 1) {
+      setCurrentExerciseIndex(currentExerciseIndex + 1);
+      resetExercise();
+    }
+  };
+  
+  // Revenir à l'exercice précédent
+  const goToPreviousExercise = () => {
+    if (currentExerciseIndex > 0) {
+      setCurrentExerciseIndex(currentExerciseIndex - 1);
+      resetExercise();
+    }
+  };
+  
+  // Changer de règle grammaticale
+  const handleRuleChange = (index) => {
+    if (index !== selectedRuleIndex) {
+      setSelectedRuleIndex(index);
+      setCurrentExerciseIndex(0);
+      resetExercise();
+    }
+  };
 
   // Réinitialiser les états lorsque la règle ou le niveau change
   useEffect(() => {
@@ -106,13 +158,6 @@ export const useGrammarExercise = (level) => {
     setCurrentExerciseIndex(0);
     setUserAnswers([]);
   }, [selectedRuleIndex, level]);
-
-  // Pour initialiser l'entrée de texte avec le texte original pour certains exercices
-  useEffect(() => {
-    if (currentExercise && currentExercise.type === 'fillInTheBlank' && !showFeedback) {
-      // Optionnellement, initialiser avec une valeur par défaut si nécessaire
-    }
-  }, [currentExerciseIndex, currentExercise]);
 
   return {
     // États
@@ -130,6 +175,7 @@ export const useGrammarExercise = (level) => {
     setInputText,
     isCorrect,
     attempts,
+    completedExercises,
     
     // Données
     grammarData,
@@ -143,6 +189,10 @@ export const useGrammarExercise = (level) => {
     checkAnswer,
     retryExercise,
     canCheckAnswer,
+    goToNextExercise,
+    goToPreviousExercise,
+    handleRuleChange,
+    updateCompletedExercises
   };
 };
 

@@ -5,30 +5,32 @@ import grammarA1 from "../../../../../data/exercises/grammar/grammarA1";
 // import grammarB1 from '../../../../../data/exercises/grammar/grammarB1';
 
 /**
- * Récupère et formate les données grammaticales selon le niveau
+ * Récupère les données brutes de grammaire selon le niveau
  * @param {string} level - Le niveau de langue (A1, A2, B1, etc.)
- * @returns {Object} Données formatées pour le composant GrammarExercise
+ * @returns {Array} Données brutes de grammaire
  */
-export const getGrammarDataByLevel = (level) => {
+export const getRawGrammarData = (level) => {
   // Sélectionner les données du bon niveau
-  let grammarData;
   switch (level.toUpperCase()) {
     case "A1":
-      grammarData = grammarA1;
-      break;
+      return grammarA1;
     // Ajouter d'autres niveaux quand ils seront disponibles
     // case 'A2':
-    //   grammarData = grammarA2;
-    //   break;
+    //   return grammarA2;
     // case 'B1':
-    //   grammarData = grammarB1;
-    //   break;
+    //   return grammarB1;
     default:
-      grammarData = grammarA1; // Par défaut, utiliser A1
+      return grammarA1; // Par défaut, utiliser A1
   }
+};
 
-  // Transformer le format pour l'adapter au composant GrammarExercise
-  const categories = grammarData.map((rule) => ({
+/**
+ * Formate les données grammaticales pour l'application
+ * @param {Array} rawData - Données brutes de grammaire
+ * @returns {Array} Catégories grammaticales formatées
+ */
+export const formatGrammarCategories = (rawData) => {
+  return rawData.map((rule) => ({
     id: `grammar_${rule.id}`,
     title: rule.title,
     explanation: rule.explanation,
@@ -43,19 +45,31 @@ export const getGrammarDataByLevel = (level) => {
       pairs: exercise.pairs || [],
     })),
   }));
+};
 
-  // Ajouter des conseils pour l'étude de la grammaire
-  const tips = [
-    "Comprendre les règles est important, mais la pratique est essentielle.",
-    "Essayez de créer vos propres exemples pour chaque règle grammaticale.",
-    "Faites attention aux exceptions dans les règles.",
-    "Révisez régulièrement les règles que vous avez déjà apprises.",
-    "Utilisez la grammaire dans des contextes réels (conversations, écriture).",
-  ];
+/**
+ * Conseils généraux pour l'étude de la grammaire
+ */
+export const grammarTips = [
+  "Comprendre les règles est important, mais la pratique est essentielle.",
+  "Essayez de créer vos propres exemples pour chaque règle grammaticale.",
+  "Faites attention aux exceptions dans les règles.",
+  "Révisez régulièrement les règles que vous avez déjà apprises.",
+  "Utilisez la grammaire dans des contextes réels (conversations, écriture).",
+];
+
+/**
+ * Récupère et formate les données grammaticales selon le niveau
+ * @param {string} level - Le niveau de langue (A1, A2, B1, etc.)
+ * @returns {Object} Données formatées pour le composant GrammarExercise
+ */
+export const getGrammarDataByLevel = (level) => {
+  const rawData = getRawGrammarData(level);
+  const categories = formatGrammarCategories(rawData);
 
   return {
     categories,
-    tips,
+    tips: grammarTips,
     level,
   };
 };
