@@ -15,7 +15,7 @@ import LearningTip from "./components/LearningTip";
 import { useAnimations, useExerciseState } from "../../../../hooks/common";
 import useProgress from "../../../../hooks/useProgress";
 import { getVocabularyDataByLevel } from "./utils/dataUtils";
-import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes"; // Ajout des constantes de types d'exercices
+import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes"; 
 
 // Import des styles
 import styles from "./style";

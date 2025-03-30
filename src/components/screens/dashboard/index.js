@@ -12,9 +12,9 @@ import LanguageTips from "./components/LanguageTips";
 import LevelProgressModal from "./components/LevelProgressModal";
 
 // Styles et données
-import styles from "./style"; // Correction : style.js au singulier
-import { challengesData, tipsData, levelsData } from "./data/mockData"; // Correction : chemin local
-import theme from "../../../styles/theme"; // Correction : chemin local
+import styles from "./style"; 
+import { challengesData, tipsData, levelsData } from "./data/mockData";
+import theme from "../../../styles/theme"; 
 
 const Dashboard = ({ route }) => {
   const navigation = useNavigation();

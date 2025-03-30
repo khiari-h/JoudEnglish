@@ -15,10 +15,10 @@ import HelpSection from './components/HelpSection';
 
 // Import des hooks personnalisés
 import { useExerciseState } from '../../../hooks/common';
-import useProgress from '../../../hooks/useProgress'; // Ajout du hook de progression
+import useProgress from '../../../hooks/useProgress';
 import useChatLogic from './hooks/useChatLogic';
 import { getChatScenariosByLevel } from './utils/dataUtils';
-import { EXERCISE_TYPES } from '../../../constants/exercicesTypes'; // Ajout des constantes de types d'exercices
+import { EXERCISE_TYPES } from '../../../constants/exercicesTypes'; 
 
 // Import des styles
 import styles from './style';
