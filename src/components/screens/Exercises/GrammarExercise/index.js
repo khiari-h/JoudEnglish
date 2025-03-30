@@ -4,7 +4,7 @@ import { View, ScrollView, SafeAreaView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 
 // Import des composants
-import ExerciseHeader from './components/ExerciseHeader';
+import ExerciseHeader from './components/ExerciceHeader';
 import RuleSelector from './components/RuleSelector';
 import ProgressBar from './components/ProgressBar';
 import RuleDisplay from './components/RuleDisplay';

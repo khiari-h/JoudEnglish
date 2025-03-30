@@ -14,7 +14,7 @@ import LearningTip from "./components/LearningTip";
 // Import des hooks personnalisés
 import { useAnimations, useExerciseState } from "../../../../hooks/common";
 import useProgress from "../../../../hooks/useProgress";
-import { getVocabularyDataByLevel } from "./utils/datautils";
+import { getVocabularyDataByLevel } from "./utils/dataUtils";
 import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes"; // Ajout des constantes de types d'exercices
 
 // Import des styles
