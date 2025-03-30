@@ -13,15 +13,15 @@ import ReadingExercise from "../screens/Exercises/ReadingExercise";
 import WordGamesExercise from "../screens/Exercises/WordGamesExercise";
 
 // Importation des nouveaux composants d'orthographe refactorisés
-import { 
-  SpellingSelectionScreen, 
-  SpellingRulesPractice, 
-  SpellingCorrectionPractice 
-} from "../components/screens/Exercises/Spelling";
+import {
+  SpellingSelectionScreen,
+  SpellingRulesPractice,
+  SpellingCorrectionPractice,
+} from "../screens/Exercises/Spelling";
 
 const Stack = createStackNavigator();
 
-// Nous supprimons la fonction getLevelColor car elle est maintenant importée 
+// Nous supprimons la fonction getLevelColor car elle est maintenant importée
 // depuis utils/levelUtils.js dans les composants concernés
 
 const AppNavigator = () => {

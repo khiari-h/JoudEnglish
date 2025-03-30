@@ -5,36 +5,36 @@ import { useNavigation } from "@react-navigation/native";
 import ExerciseCard from "./ExerciceCard";
 import { getLevelColor, getExercises, exerciseRoutes } from "./data";
 import styles from "./style";
-import useProgress from "../../hooks/useProgress"; // Importez le hook de progression
+import useProgress from "../../../hooks/useProgress";
 
 const ExerciseSelection = ({ route }) => {
   const { level } = route.params;
   const navigation = useNavigation();
   const [exercisesWithProgress, setExercisesWithProgress] = useState([]);
-  
+
   // Utiliser le hook de progression pour obtenir les données
   const { getExerciseTypeProgress } = useProgress();
 
   // Obtenir la couleur du niveau
   const levelColor = getLevelColor(level);
-  
+
   // Charger les exercices avec leur progression
   useEffect(() => {
     // Récupérer la liste statique des exercices
     const baseExercises = getExercises(levelColor);
-    
+
     // Enrichir avec les données de progression
-    const updatedExercises = baseExercises.map(exercise => {
+    const updatedExercises = baseExercises.map((exercise) => {
       // Obtenir la progression pour ce type d'exercice et ce niveau
       const progress = getExerciseTypeProgress(exercise.id, level) || 0;
-      
+
       // Renvoyer l'exercice avec sa progression réelle
       return {
         ...exercise,
-        progress
+        progress,
       };
     });
-    
+
     setExercisesWithProgress(updatedExercises);
   }, [level, levelColor, getExerciseTypeProgress]);
 
