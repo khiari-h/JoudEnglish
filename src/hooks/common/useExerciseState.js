@@ -2,7 +2,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useNavigationControls } from "./index";
 import useProgress from "../useProgress";
-import { getLevelColor } from "../../utils/getLevelColor";
+import getLevelColor from "../../utils/getLevelColor";
 
 /**
  * Hook générique pour gérer l'état des exercices

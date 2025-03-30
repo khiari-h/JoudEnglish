@@ -1,39 +1,37 @@
-import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
-import styles from './style';
+import React from "react";
+import { View, TouchableOpacity } from "react-native";
+import styles from "./style";
 
 /**
  * Component for displaying word card indicators/dots
+ * Adapté pour utiliser les props fournis par VocabularyExercise
  */
 const CardIndicators = ({
-  words,
-  currentWordIndex,
+  totalWords, // Changé de words à totalWords
+  currentIndex, // Changé de currentWordIndex à currentIndex
   completedWords,
-  selectedCategoryIndex,
-  handleWordSelection,
-  levelColor
+  levelColor,
+  onSelectWord, // Changé de handleWordSelection à onSelectWord
 }) => {
-  if (!words || words.length === 0) return null;
-  
+  if (!totalWords || totalWords === 0) return null;
+
   return (
     <View style={styles.cardIndicatorContainer}>
-      {words.map((_, index) => (
-        <TouchableOpacity
-          key={index}
-          onPress={() => handleWordSelection(index)}
-        >
+      {/* Créer un tableau du nombre requis d'indicateurs */}
+      {[...Array(totalWords)].map((_, index) => (
+        <TouchableOpacity key={index} onPress={() => onSelectWord(index)}>
           <View
             style={[
               styles.cardIndicator,
               {
                 backgroundColor:
-                  currentWordIndex === index
+                  currentIndex === index
                     ? levelColor
-                    : completedWords[selectedCategoryIndex]?.includes(index)
+                    : completedWords?.includes(index)
                     ? `${levelColor}50`
                     : "#e5e7eb",
-                width: currentWordIndex === index ? 12 : 8,
-                height: currentWordIndex === index ? 12 : 8,
+                width: currentIndex === index ? 12 : 8,
+                height: currentIndex === index ? 12 : 8,
               },
             ]}
           />

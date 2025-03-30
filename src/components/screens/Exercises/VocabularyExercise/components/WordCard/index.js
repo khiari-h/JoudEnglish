@@ -1,20 +1,22 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Animated } from 'react-native';
-import styles from './style';
+import React from "react";
+import { View, Text, TouchableOpacity, Animated } from "react-native";
+import styles from "./style";
 
 /**
  * Component that displays the vocabulary word card
+ * Adapté pour utiliser les props fournis par VocabularyExercise
  */
 const WordCard = ({
-  currentWord,
+  word, // Changé de currentWord à word
   showTranslation,
-  toggleTranslation,
-  levelColor,
+  onToggleTranslation, // Changé de toggleTranslation
+  isCompleted,
   fadeAnim,
-  slideAnim
+  slideAnim,
+  levelColor,
 }) => {
-  if (!currentWord) return null;
-  
+  if (!word) return null;
+
   return (
     <Animated.View
       style={[
@@ -33,19 +35,19 @@ const WordCard = ({
             { backgroundColor: `${levelColor}15` },
           ]}
         >
-          <Text style={styles.word}>{currentWord.word}</Text>
+          <Text style={styles.word}>{word.word}</Text>
         </View>
 
         {/* Translation toggle */}
         <TouchableOpacity
           style={styles.translationToggleContainer}
-          onPress={toggleTranslation}
+          onPress={onToggleTranslation} // Utilisé onToggleTranslation au lieu de toggleTranslation
           activeOpacity={0.7}
         >
           {showTranslation ? (
             <View style={styles.translationContainer}>
               <Text style={[styles.translation, { color: levelColor }]}>
-                {currentWord.translation}
+                {word.translation}
               </Text>
               <Text style={styles.toggleHint}>(Tap to hide)</Text>
             </View>
@@ -76,7 +78,7 @@ const WordCard = ({
             />
             <Text style={styles.sectionTitle}>Definition</Text>
           </View>
-          <Text style={styles.sectionText}>{currentWord.definition}</Text>
+          <Text style={styles.sectionText}>{word.definition}</Text>
         </View>
 
         {/* Example section */}
@@ -88,7 +90,7 @@ const WordCard = ({
             <Text style={styles.sectionTitle}>Example</Text>
           </View>
           <Text style={styles.sectionText}>
-            <Text style={styles.exampleText}>{currentWord.example}</Text>
+            <Text style={styles.exampleText}>{word.example}</Text>
           </Text>
         </View>
       </View>
