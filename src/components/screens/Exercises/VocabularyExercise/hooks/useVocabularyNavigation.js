@@ -1,9 +1,9 @@
-import { useCallback } from 'react';
-import { useNavigationControls } from '../common';
+import { useCallback } from "react";
+import { useNavigationControls } from "../../../../../hooks/common";
 
 /**
  * Hook pour gérer la navigation dans les exercices de vocabulaire
- * 
+ *
  * @param {Object} params - Paramètres du hook
  * @param {number} params.currentWordIndex - Index du mot actuel
  * @param {number} params.totalWords - Nombre total de mots
@@ -29,7 +29,7 @@ export const useVocabularyNavigation = ({
   selectedCategoryIndex,
   setSelectedCategoryIndex,
   completedWords,
-  navigation
+  navigation,
 }) => {
   // Fonction pour réinitialiser l'état avant le changement de mot
   const resetWordState = useCallback(() => {
@@ -41,7 +41,7 @@ export const useVocabularyNavigation = ({
   const handleWordComplete = useCallback(() => {
     // Marquer le mot actuel comme complété
     markWordAsCompleted();
-    
+
     // Vérifier si tous les mots sont complétés
     const allCompleted = categories.every((category, index) => {
       return (completedWords[index]?.length || 0) === category.words.length;
@@ -54,21 +54,26 @@ export const useVocabularyNavigation = ({
     } else {
       // Trouver la prochaine catégorie avec des mots non complétés
       let nextCategoryIndex = (selectedCategoryIndex + 1) % categories.length;
-      
+
       while (
-        completedWords[nextCategoryIndex]?.length === categories[nextCategoryIndex].words.length &&
+        completedWords[nextCategoryIndex]?.length ===
+          categories[nextCategoryIndex].words.length &&
         nextCategoryIndex !== selectedCategoryIndex
       ) {
         nextCategoryIndex = (nextCategoryIndex + 1) % categories.length;
       }
-      
+
       if (nextCategoryIndex === selectedCategoryIndex) {
         // Si nous revenons à la même catégorie, tout est fait
         alert("All vocabulary exercises completed!");
         navigation.goBack();
       } else {
         // Demander de passer à la catégorie suivante
-        if (confirm(`You've completed this category! Move to ${categories[nextCategoryIndex].title}?`)) {
+        if (
+          confirm(
+            `You've completed this category! Move to ${categories[nextCategoryIndex].title}?`
+          )
+        ) {
           setSelectedCategoryIndex(nextCategoryIndex);
           setCurrentWordIndex(0);
         } else {
@@ -84,36 +89,34 @@ export const useVocabularyNavigation = ({
     completedWords,
     setSelectedCategoryIndex,
     setCurrentWordIndex,
-    navigation
+    navigation,
   ]);
 
   // Utiliser le hook générique pour la navigation de base
-  const {
-    goToNext,
-    goToPrevious,
-    handleGoBack,
-    canGoToNext,
-    canGoToPrevious
-  } = useNavigationControls({
-    navigation,
-    currentIndex: currentWordIndex,
-    totalItems: totalWords,
-    setCurrentIndex: setCurrentWordIndex,
-    resetState: resetWordState,
-    onComplete: handleWordComplete
-  });
+  const { goToNext, goToPrevious, handleGoBack, canGoToNext, canGoToPrevious } =
+    useNavigationControls({
+      navigation,
+      currentIndex: currentWordIndex,
+      totalItems: totalWords,
+      setCurrentIndex: setCurrentWordIndex,
+      resetState: resetWordState,
+      onComplete: handleWordComplete,
+    });
 
   // Fonction spécifique pour sélectionner directement un mot
-  const handleWordSelection = useCallback((index) => {
-    setCurrentWordIndex(index);
-    setShowTranslation(false);
-    resetAnimation();
-  }, [setCurrentWordIndex, setShowTranslation, resetAnimation]);
+  const handleWordSelection = useCallback(
+    (index) => {
+      setCurrentWordIndex(index);
+      setShowTranslation(false);
+      resetAnimation();
+    },
+    [setCurrentWordIndex, setShowTranslation, resetAnimation]
+  );
 
   return {
     handleNext: goToNext,
     handlePrevious: goToPrevious,
     handleWordSelection,
-    handleGoBack
+    handleGoBack,
   };
 };

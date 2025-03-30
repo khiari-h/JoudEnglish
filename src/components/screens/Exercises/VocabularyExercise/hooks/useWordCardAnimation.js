@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useAnimations } from '../../../hooks/common';
+import { useEffect } from "react";
+import { useAnimations } from "../../../../../hooks/common/useAnimations";
 
 /**
  * Hook pour gérer les animations des cartes de vocabulaire
@@ -7,14 +7,9 @@ import { useAnimations } from '../../../hooks/common';
  */
 export const useWordCardAnimation = () => {
   // Utiliser notre hook générique d'animations
-  const { 
-    fadeAnim, 
-    slideAnim, 
-    animateIn, 
-    resetAnimations 
-  } = useAnimations({
+  const { fadeAnim, slideAnim, animateIn, resetAnimations } = useAnimations({
     initialValues: { fade: 0, slide: 50, scale: 1 },
-    config: { duration: 500 }
+    config: { duration: 500 },
   });
 
   // Fonction pour déclencher l'animation
