@@ -1,47 +1,47 @@
 // src/components/screens/Exercises/ErrorCorrectionExercise/index.js
-import React, { useState, useEffect, useRef } from 'react';
-import { View, SafeAreaView } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import React, { useState, useEffect, useRef } from "react";
+import { View, SafeAreaView } from "react-native";
+import { useRoute } from "@react-navigation/native";
 
 // Import des composants
-import ExerciseHeader from './components/ExerciseHeader';
-import BrowseMode from './components/BrowseMode';
-import ExerciseMode from './components/ExerciseMode';
-import ResultsMode from './components/ResultsMode';
+import ExerciseHeader from "./components/ExerciceHeader";
+import BrowseMode from "./components/BrowseMode";
+import ExerciseMode from "./components/ExerciseMode";
+import ResultsMode from "./components/ResultsMode";
 
 // Import des hooks personnalisés
-import { useExerciseState, useAnimations } from '../../../hooks/common';
-import useProgress from '../../../hooks/useProgress'; // Ajout du hook de progression
-import { getErrorCorrectionDataByLevel } from './utils/dataUtils';
-import { EXERCISE_TYPES } from '../../../constants/exercicesTypes'; // Ajout des constantes de types d'exercices
+import { useExerciseState, useAnimations } from "../../../../hooks/common";
+import useProgress from "../../../../hooks/useProgress"; // Ajout du hook de progression
+import { getErrorCorrectionDataByLevel } from "./utils/dataUtils";
+import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes"; // Ajout des constantes de types d'exercices
 
 // Import des styles
-import styles from './style';
+import styles from "./style";
 
 /**
  * Composant principal pour les exercices de correction d'erreurs
  */
 const ErrorCorrectionExercise = ({ navigation }) => {
   const route = useRoute();
-  const { level } = route.params || { level: 'A1' };
-  
+  const { level } = route.params || { level: "A1" };
+
   // Utiliser le hook de progression
   const { updateProgress } = useProgress();
-  
+
   // États spécifiques à la correction d'erreurs
-  const [viewMode, setViewMode] = useState('browse'); // 'browse', 'exercise', 'results'
+  const [viewMode, setViewMode] = useState("browse"); // 'browse', 'exercise', 'results'
   const [exercisesData, setExercisesData] = useState({ categories: [] });
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [correctionMode, setCorrectionMode] = useState('full'); // 'full', 'identify', 'multiple_choice'
-  const [userCorrection, setUserCorrection] = useState('');
+  const [correctionMode, setCorrectionMode] = useState("full"); // 'full', 'identify', 'multiple_choice'
+  const [userCorrection, setUserCorrection] = useState("");
   const [selectedErrorIndices, setSelectedErrorIndices] = useState([]);
   const [selectedChoiceIndex, setSelectedChoiceIndex] = useState(null);
   const [showHint, setShowHint] = useState(false);
   const [results, setResults] = useState([]);
-  
+
   // Animations
   const { fadeAnim, scaleAnim, animateIn, resetAnimations } = useAnimations();
-  
+
   // Charger les données d'exercice
   useEffect(() => {
     const data = getErrorCorrectionDataByLevel(level);
@@ -50,29 +50,34 @@ const ErrorCorrectionExercise = ({ navigation }) => {
       setSelectedCategory(data.categories[0].id);
     }
   }, [level]);
-  
+
   // Filtrer les exercices par catégorie
   const exercises = exercisesData.categories
-    ? exercisesData.categories.find(c => c.id === selectedCategory)?.exercises || []
+    ? exercisesData.categories.find((c) => c.id === selectedCategory)
+        ?.exercises || []
     : [];
-  
+
   // Fonction personnalisée pour vérifier les réponses
   const checkErrorCorrection = (userAnswer, exercise) => {
-    if (correctionMode === 'full') {
+    if (correctionMode === "full") {
       // Normaliser et comparer les corrections
-      return userAnswer.trim().toLowerCase() === exercise.correctText.toLowerCase();
-    } else if (correctionMode === 'identify') {
+      return (
+        userAnswer.trim().toLowerCase() === exercise.correctText.toLowerCase()
+      );
+    } else if (correctionMode === "identify") {
       // Vérifier si les erreurs identifiées correspondent
       const errorIndices = exercise.errorIndices || [];
-      return userAnswer.length === errorIndices.length && 
-        userAnswer.every(index => errorIndices.includes(index));
-    } else if (correctionMode === 'multiple_choice') {
+      return (
+        userAnswer.length === errorIndices.length &&
+        userAnswer.every((index) => errorIndices.includes(index))
+      );
+    } else if (correctionMode === "multiple_choice") {
       // Vérifier le choix sélectionné
       return userAnswer === exercise.correctChoiceIndex;
     }
     return false;
   };
-  
+
   // Utiliser le hook générique d'exercice
   const {
     currentIndex,
@@ -95,37 +100,43 @@ const ErrorCorrectionExercise = ({ navigation }) => {
     canGoToNext,
     canGoToPrevious,
     canCheckAnswer,
-    completedItems
+    completedItems,
   } = useExerciseState({
     type: EXERCISE_TYPES.ERROR_CORRECTION,
     level,
     exercises,
     navigation,
     checkAnswerFn: checkErrorCorrection,
-    autoSaveProgress: false // On va gérer manuellement la progression
+    autoSaveProgress: false, // On va gérer manuellement la progression
   });
-  
+
   // Mise à jour de la réponse utilisateur en fonction du mode
   useEffect(() => {
-    if (correctionMode === 'full') {
+    if (correctionMode === "full") {
       setUserAnswer(userCorrection);
-    } else if (correctionMode === 'identify') {
+    } else if (correctionMode === "identify") {
       setUserAnswer(selectedErrorIndices);
-    } else if (correctionMode === 'multiple_choice') {
+    } else if (correctionMode === "multiple_choice") {
       setUserAnswer(selectedChoiceIndex);
     }
-  }, [correctionMode, userCorrection, selectedErrorIndices, selectedChoiceIndex, setUserAnswer]);
-  
+  }, [
+    correctionMode,
+    userCorrection,
+    selectedErrorIndices,
+    selectedChoiceIndex,
+    setUserAnswer,
+  ]);
+
   // Mise à jour de la progression quand une réponse est correcte
   useEffect(() => {
-    if (viewMode === 'exercise' && showFeedback && isCorrect) {
+    if (viewMode === "exercise" && showFeedback && isCorrect) {
       // Calculer la progression
       const completedCount = completedItems.length;
       const totalExercises = exercises.length;
-      
+
       // Identifier cette catégorie spécifique pour la progression
-      const categoryId = selectedCategory || 'default';
-      
+      const categoryId = selectedCategory || "default";
+
       // Mettre à jour la progression pour cette catégorie spécifique
       updateProgress(
         `error_correction_${level.toLowerCase()}_${categoryId}`,
@@ -134,27 +145,27 @@ const ErrorCorrectionExercise = ({ navigation }) => {
         completedCount,
         totalExercises
       );
-      
+
       // Calculer la progression globale pour la correction d'erreurs
       let totalAllExercises = 0;
       let completedAllExercises = 0;
-      
+
       exercisesData.categories.forEach((category) => {
         if (category.exercises) {
           const catExercises = category.exercises.length;
           totalAllExercises += catExercises;
-          
+
           // Si c'est la catégorie actuelle, utiliser completedItems
           if (category.id === categoryId) {
             completedAllExercises += completedCount;
           } else {
-            // Ici, vous pourriez ajouter une logique pour récupérer les exercices 
+            // Ici, vous pourriez ajouter une logique pour récupérer les exercices
             // complétés des autres catégories depuis un stockage persistant
             completedAllExercises += 0; // Pour l'instant, supposons 0
           }
         }
       });
-      
+
       // Mettre à jour la progression globale
       updateProgress(
         `error_correction_${level.toLowerCase()}`,
@@ -164,62 +175,76 @@ const ErrorCorrectionExercise = ({ navigation }) => {
         totalAllExercises
       );
     }
-  }, [viewMode, showFeedback, isCorrect, completedItems.length, exercises.length, level, selectedCategory, exercisesData.categories, updateProgress]);
-  
+  }, [
+    viewMode,
+    showFeedback,
+    isCorrect,
+    completedItems.length,
+    exercises.length,
+    level,
+    selectedCategory,
+    exercisesData.categories,
+    updateProgress,
+  ]);
+
   // Démarrer un exercice
   const startExercise = (mode) => {
     setCorrectionMode(mode);
-    setViewMode('exercise');
+    setViewMode("exercise");
     setCurrentIndex(0);
     resetExerciseState();
-    setUserCorrection('');
+    setUserCorrection("");
     setSelectedErrorIndices([]);
     setSelectedChoiceIndex(null);
     setShowHint(false);
     resetAnimations();
     animateIn();
   };
-  
+
   // Gérer le clic sur un mot (pour l'identification d'erreurs)
   const handleWordPress = (index) => {
     if (showFeedback) return;
-    
+
     const newIndices = [...selectedErrorIndices];
     const indexPosition = newIndices.indexOf(index);
-    
+
     if (indexPosition === -1) {
       newIndices.push(index);
     } else {
       newIndices.splice(indexPosition, 1);
     }
-    
+
     setSelectedErrorIndices(newIndices);
   };
-  
+
   // Aller à l'exercice suivant ou afficher les résultats
   const handleNext = () => {
     if (isLastExercise) {
       // Finaliser et afficher les résultats
-      setResults([...completedItems.map(index => ({
-        exercise: exercises[index],
-        isCorrect: true
-      }))]);
-      
+      setResults([
+        ...completedItems.map((index) => ({
+          exercise: exercises[index],
+          isCorrect: true,
+        })),
+      ]);
+
       // Mettre à jour une dernière fois la progression
       updateProgress(
-        `error_correction_${level.toLowerCase()}_${selectedCategory || 'default'}`,
+        `error_correction_${level.toLowerCase()}_${
+          selectedCategory || "default"
+        }`,
         EXERCISE_TYPES.ERROR_CORRECTION,
         level,
         completedItems.length,
         exercises.length
       );
-      
-      setViewMode('results');
+
+      setViewMode("results");
     } else {
       goToNext();
       resetAnimations();
       animateIn();
-      setUserCorrection('');
+      setUserCorrection("");
       setSelectedErrorIndices([]);
       setSelectedChoiceIndex(null);
       setShowHint(false);
@@ -235,9 +260,9 @@ const ErrorCorrectionExercise = ({ navigation }) => {
         navigation={navigation}
         title="Error Correction"
       />
-      
+
       {/* Mode navigation */}
-      {viewMode === 'browse' && (
+      {viewMode === "browse" && (
         <BrowseMode
           exercisesData={exercisesData}
           selectedCategory={selectedCategory}
@@ -247,9 +272,9 @@ const ErrorCorrectionExercise = ({ navigation }) => {
           levelColor={levelColor}
         />
       )}
-      
+
       {/* Mode exercice */}
-      {viewMode === 'exercise' && (
+      {viewMode === "exercise" && (
         <ExerciseMode
           exercises={exercises}
           currentExerciseIndex={currentIndex}
@@ -272,14 +297,14 @@ const ErrorCorrectionExercise = ({ navigation }) => {
           scaleAnim={scaleAnim}
         />
       )}
-      
+
       {/* Mode résultats */}
-      {viewMode === 'results' && (
+      {viewMode === "results" && (
         <ResultsMode
           results={results}
           totalExercises={exercises.length}
           levelColor={levelColor}
-          onStartOver={() => setViewMode('browse')}
+          onStartOver={() => setViewMode("browse")}
         />
       )}
     </SafeAreaView>
