@@ -17,6 +17,9 @@ import useProgress from "../../../../hooks/useProgress"; // Ajout du hook de pro
 import { getPhrasesDataByLevel } from "./utils/dataUtils";
 import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes"; // Ajout des constantes de types d'exercices
 
+// Import des données
+import { exercises } from "../../../data/exercises";
+
 // Import des styles
 import styles from "./style";
 
@@ -36,7 +39,7 @@ const PhrasesExpressions = ({ navigation }) => {
 
   // Charger les données des phrases
   useEffect(() => {
-    const data = getPhrasesDataByLevel(level);
+    const data = exercises.phrases[level] || { categories: [] };
     setPhrasesData(data);
 
     // Initialiser le suivi des phrases vues

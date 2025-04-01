@@ -1,4 +1,4 @@
-import theme from '../styles/theme';
+import { exercises } from '../data/exercises';
 
 export const calculateProgress = (completed, total) => {
   if (!total) return 0;

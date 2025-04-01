@@ -16,7 +16,7 @@ import ActionButtons from "./components/ActionButtons";
 import { useExerciseState, useAnimations } from "../../../../hooks/common";
 import useProgress from "../../../../hooks/useProgress"; // Ajout du hook de progression
 import useReadingTextInteraction from "./hooks/useReadingTextInteraction";
-import { getReadingDataByLevel } from "./utils/dataUtils";
+import { exercises } from "../../../../data/exercises"; // Correction de l'import
 import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes"; // Ajout des constantes de types d'exercices
 
 // Import des styles
@@ -47,7 +47,7 @@ const ReadingExercise = ({ navigation }) => {
 
   // Charger les données de lecture
   useEffect(() => {
-    const data = getReadingDataByLevel(level);
+    const data = exercises.reading[level] || [];
     setReadingData(data);
 
     // Initialiser le suivi des questions complétées

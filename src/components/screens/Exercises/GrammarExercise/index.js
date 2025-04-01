@@ -14,7 +14,7 @@ import ExerciseActions from "./components/ExerciceActions";
 
 // Import des hooks personnalisés
 import useGrammarExercise from "./hooks/useGrammarExercise";
-import useProgress from "../../../../hooks/useProgress";
+import useProgress from "../../../hooks/useProgress";
 import { getLevelColor } from "./utils/levelUtils";
 import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes";
 

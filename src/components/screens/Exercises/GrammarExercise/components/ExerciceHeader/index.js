@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import styles from './style';
-import Button from '../../../../../ui/Button';
+import Button from '../../../../../common/ui/Button';
 
 /**
  * Composant d'en-tête pour les exercices de grammaire

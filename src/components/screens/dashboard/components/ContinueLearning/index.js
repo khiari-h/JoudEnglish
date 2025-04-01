@@ -1,91 +1,66 @@
 // Dashboard/components/ContinueLearning/index.js
-import React, { useRef, useEffect } from "react";
-import { View, Text, Pressable, Animated } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import Button from "../../../../ui/Button";
-import styles from "./style";
+import React from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useLastExercise } from '../../../hooks/useLastExercise';
+import { useAppNavigation } from '../../../hooks/useAppNavigation';
+import styles from './styles';
 
-const ContinueLearning = ({ activity, onPress }) => {
-  // Animation pour l'entrée des cartes
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const translateYAnim = useRef(new Animated.Value(50)).current;
+const ContinueLearning = () => {
+  const { lastExercise } = useLastExercise();
+  const { navigateToExercise } = useAppNavigation();
 
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateYAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
+  if (!lastExercise) return null;
+
+  const handleContinue = () => {
+    navigateToExercise(lastExercise.type, {
+      level: lastExercise.level,
+      exerciseId: lastExercise.id
+    });
+  };
+
+  const getTimeAgo = (timestamp) => {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return 'Just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return 'Today';
+  };
 
   return (
-    <Animated.View
-      style={[
-        styles.sectionContainer,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: translateYAnim }],
-        },
+    <Pressable 
+      style={({ pressed }) => [
+        styles.container,
+        pressed && styles.pressed
       ]}
+      onPress={handleContinue}
     >
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Continue Learning</Text>
+      <View style={styles.iconContainer}>
+        <Ionicons 
+          name={lastExercise.icon || 'book-outline'} 
+          size={24} 
+          color="#FFF"
+        />
       </View>
 
-      <Pressable
-        style={({ pressed }) => [
-          styles.lastActivityCard,
-          { opacity: pressed ? 0.9 : 1 },
-        ]}
-        onPress={onPress}
-      >
-        <View style={styles.lastActivityContent}>
-          <View
-            style={[
-              styles.lastActivityIconContainer,
-              { backgroundColor: "#7764E4" },
-            ]}
-          >
-            <Ionicons name={activity.icon} size={28} color="white" />
-          </View>
-          <View style={styles.lastActivityDetails}>
-            <Text style={styles.lastActivityTitle}>{activity.title}</Text>
-            <Text style={styles.lastActivityTopic}>{activity.topic}</Text>
-            <View style={styles.progressContainer}>
-              <View style={styles.progressBar}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    {
-                      width: `${activity.progress}%`,
-                      backgroundColor: "#7764E4",
-                    },
-                  ]}
-                />
-              </View>
-              <Text style={styles.progressText}>{activity.progress}%</Text>
-            </View>
-          </View>
-        </View>
-        <View style={styles.continueButtonContainer}>
-          {/* Utiliser le nouveau Button avec l'icône */}
-          <Button
-            icon={<Ionicons name="play" size={16} color="white" />}
-            color="#5E60CE"
-            size="small"
-            style={styles.continueButton}
-            onPress={onPress}
-          />
-        </View>
-      </Pressable>
-    </Animated.View>
+      <View style={styles.content}>
+        <Text style={styles.title}>Continue Learning</Text>
+        <Text style={styles.exerciseInfo}>
+          {lastExercise.type} - Level {lastExercise.level}
+        </Text>
+        <Text style={styles.timestamp}>
+          {getTimeAgo(lastExercise.timestamp)}
+        </Text>
+      </View>
+
+      <View style={styles.progressContainer}>
+        <Text style={styles.progressText}>
+          {lastExercise.progress || 0}%
+        </Text>
+      </View>
+    </Pressable>
   );
 };
 

@@ -1,91 +1,41 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Animated } from 'react-native';
+import useExerciseStore from '../stores/exerciseStore';
+import useProgress from './useProgress';
 
-const useExerciseState = ({
-  exercises,
-  checkAnswerFn,
-  onComplete,
-  levelColor
-}) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [attempts, setAttempts] = useState([]);
-  const [score, setScore] = useState(0);
-  const [completedItems, setCompletedItems] = useState([]);
-
+const useExerciseState = ({ type, level, exercises, initialIndex = 0 }) => {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [userAnswers, setUserAnswers] = useState({});
+  const [isComplete, setIsComplete] = useState(false);
+  const { updateProgress } = useProgress();
+  const store = useExerciseStore();
+  
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  const resetExercise = useCallback(() => {
-    setCurrentIndex(0);
-    setShowFeedback(false);
-    setIsCorrect(false);
-    setAttempts([]);
-    setScore(0);
-    setCompletedItems([]);
-  }, []);
+  const handleAnswer = useCallback((answer) => {
+    setUserAnswers(prev => ({
+      ...prev,
+      [currentIndex]: answer
+    }));
+    
+    const progress = Object.keys(userAnswers).length / exercises.length * 100;
+    store.setProgress(`${type}_${level}`, progress);
+  }, [currentIndex, exercises.length, store, type, level, userAnswers]);
 
-  const handleComplete = useCallback(() => {
-    const finalScore = {
-      total: exercises.length,
-      correct: score,
-      percentage: Math.round((score / exercises.length) * 100)
-    };
-    onComplete?.(finalScore);
-  }, [exercises.length, score, onComplete]);
-
-  const checkAnswer = useCallback(async (answer) => {
-    try {
-      const result = await checkAnswerFn(answer, exercises[currentIndex]);
-      setIsCorrect(result);
-    } catch (error) {
-      console.error('Error checking answer:', error);
-      handleError(error);
+  useEffect(() => {
+    if (Object.keys(userAnswers).length === exercises.length) {
+      setIsComplete(true);
+      updateProgress(type, level, exercises.length, exercises.length);
     }
-  }, [checkAnswerFn, exercises, currentIndex, handleError]);
-
-  const animate = useCallback((toValue, duration = 200) => {
-    Animated.timing(fadeAnim, {
-      toValue,
-      duration,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim]);
-
-  const goToNext = useCallback(() => {
-    if (currentIndex < exercises.length - 1) {
-      animate(0, 200);
-      setCurrentIndex(prev => prev + 1);
-      setShowFeedback(false);
-      animate(1, 200);
-    } else {
-      handleComplete();
-    }
-  }, [currentIndex, exercises.length, handleComplete, animate]);
-
-  const getCurrentExercise = useCallback(() => {
-    if (!exercises || currentIndex >= exercises.length) {
-      return null;
-    }
-    return exercises[currentIndex];
-  }, [exercises, currentIndex]);
+  }, [userAnswers, exercises.length, type, level, updateProgress]);
 
   return {
     currentIndex,
-    showFeedback,
-    isCorrect,
-    attempts,
-    fadeAnim,
-    animate,
-    checkAnswer,
-    goToNext,
     setCurrentIndex,
-    levelColor,
-    score,
-    completedItems,
-    resetExercise,
-    handleComplete,
-    getCurrentExercise
+    handleAnswer,
+    userAnswers,
+    isComplete,
+    fadeAnim,
   };
 };
 

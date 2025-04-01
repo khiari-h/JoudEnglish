@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ScrollView, Text } from 'react-native';
-import Button from '../../ui/Button';
+import Button from '../ui/Button';
 import styles from './style';
 
 const SelectableList = ({

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
-import Button from '../../ui/Button';
+import Button from '../ui/Button';
 import styles from './styles';
 
 const ResultsScreen = ({
@@ -8,17 +8,20 @@ const ResultsScreen = ({
   total,
   levelColor,
   title = "Exercise Complete!",
+  subtitle,
   feedback,
+  details,
   onRetry,
   onExit,
-  children
+  customContent
 }) => {
   const percentage = Math.round((score / total) * 100);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.title}>{title}</Text>
+        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
 
         <View style={styles.scoreCircle}>
           <Text style={styles.scorePercentage}>{percentage}%</Text>
@@ -31,7 +34,11 @@ const ResultsScreen = ({
           <Text style={styles.feedback}>{feedback}</Text>
         )}
 
-        {children}
+        {details && (
+          <View style={styles.details}>{details}</View>
+        )}
+
+        {customContent}
 
         <View style={styles.buttonContainer}>
           <Button
@@ -44,7 +51,7 @@ const ResultsScreen = ({
             title="Exit"
             onPress={onExit}
             variant="outlined"
-            color={levelColor} 
+            color={levelColor}
             style={styles.button}
           />
         </View>

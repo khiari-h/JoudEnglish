@@ -1,3 +1,4 @@
+// Le commentaire de chemin ne correspond pas au chemin réel du fichier
 // data/exercises/spelling/spellingRulesA1.js
 export default {
   title: "A1 Spelling Rules",

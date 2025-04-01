@@ -21,7 +21,7 @@ import CategorizationGame from "./components/games/CategorizationGame";
 import { useExerciseState, useAnimations } from "../../../../hooks/common";
 import useProgress from "../../../../hooks/useProgress"; // Ajout du hook de progression
 import useGameTimer from "./hooks/useGameTimer";
-import { getWordGamesDataByLevel } from "./utils/dataUtils";
+import { exercises } from "../../../../data/exercises";
 import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes"; // Ajout des constantes de types d'exercices
 
 // Import des styles
@@ -54,7 +54,7 @@ const WordGamesExercise = ({ navigation }) => {
 
   // Charger les données de jeux
   useEffect(() => {
-    const data = getWordGamesDataByLevel(level);
+    const data = exercises.wordGames[level] || { games: [] };
     setGamesData(data);
 
     // Initialiser les résultats

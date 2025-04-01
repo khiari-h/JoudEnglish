@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import styles from './style';
-import Button from '../../../../../ui/Button';
+import Button from '../../../../../common/ui/Button';
 
 /**
  * Boutons de navigation pour passer entre les phrases

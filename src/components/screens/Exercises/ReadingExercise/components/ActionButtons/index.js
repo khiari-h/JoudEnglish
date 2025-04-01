@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import styles from './style';
-import Button from '../../../../../ui/Button';
+import Button from '../../../../../common/ui/Button';
 
 /**
  * Boutons d'action pour les exercices de lecture

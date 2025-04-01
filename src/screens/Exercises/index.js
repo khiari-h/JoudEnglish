@@ -1,0 +1,9 @@
+export { default as VocabularyExercise } from './VocabularyExercise';
+export { default as GrammarExercise } from './GrammarExercise';
+export { default as ReadingExercise } from './ReadingExercise';
+export { default as WordGamesExercise } from './WordGamesExercise';
+export { default as PhrasesExpressions } from './PhrasesExpressions';
+export { default as ErrorCorrectionExercise } from './ErrorCorrectionExercise';
+export { default as SpellingExercise } from './Spelling';
+export { default as ChatbotWriting } from './ChatbotWriting';
+export { default as LevelAssessment } from './LevelAssessment';

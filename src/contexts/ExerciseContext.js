@@ -1,13 +1,15 @@
 import React, { createContext, useContext, useCallback, useMemo } from 'react';
 import theme from '../styles/theme';
-import { useExerciseStore } from '../stores/exerciseStore';
+import useExerciseStore from '../stores/exerciseStore';
+import useNavigationStore from '../stores/navigationStore';
 import { useAnimations } from '../hooks/useAnimations';
 import { useExerciseNavigation } from '../hooks/useExerciseNavigation';
 
 const ExerciseContext = createContext({});
 
 export const ExerciseProvider = ({ children }) => {
-  const store = useExerciseStore();
+  const exerciseStore = useExerciseStore();
+  const navigationStore = useNavigationStore();
   const animations = useAnimations();
 
   const handleError = useCallback((error) => {
@@ -31,11 +33,13 @@ export const ExerciseProvider = ({ children }) => {
   }, []);
 
   const value = useMemo(() => ({
-    ...store,
+    ...exerciseStore,
+    currentLevel: navigationStore.currentLevel,
+    setCurrentLevel: navigationStore.setCurrentLevel,
     ...animations,
     handleError,
     getLevelColor,
-  }), [store, animations, handleError, getLevelColor]);
+  }), [exerciseStore, navigationStore, animations, handleError, getLevelColor]);
 
   return (
     <ExerciseContext.Provider value={value}>

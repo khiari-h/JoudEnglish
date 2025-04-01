@@ -1,81 +1,29 @@
-import { useProgressContext } from "../contexts/ProgressContext";
-import { useNavigation } from "@react-navigation/native";
-import { EXERCISE_ROUTES } from "../constants/exercicesTypes";
-import { useCallback } from "react";
+import { useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import useExerciseStore from '../stores/exerciseStore';
 
 export const useProgress = () => {
-  const { progressData, isLoading, updateExerciseProgress } =
-    useProgressContext();
-  const navigation = useNavigation();
+  const { setProgress, progress } = useExerciseStore();
 
-  // Mémoriser les fonctions pour qu'elles conservent la même référence
-  const getLastActivity = useCallback(() => {
-    return progressData?.lastActivity;
-  }, [progressData?.lastActivity]);
-
-  const getLevelProgress = useCallback(
-    (level) => {
-      return progressData?.levelProgress?.[level] || 0;
-    },
-    [progressData?.levelProgress]
-  );
-
-  const getAllLevelProgress = useCallback(() => {
-    return progressData?.levelProgress || {};
-  }, [progressData?.levelProgress]);
-
-  const getExerciseTypeProgress = useCallback(
-    (type, level) => {
-      return progressData?.exerciseTypeProgress?.[level]?.[type] || 0;
-    },
-    [progressData?.exerciseTypeProgress]
-  );
-
-  const getExerciseProgress = useCallback(
-    (exerciseId) => {
-      return progressData?.exerciseProgress?.[exerciseId] || null;
-    },
-    [progressData?.exerciseProgress]
-  );
-
-  // Fonction pour reprendre la dernière activité
-  const resumeLastActivity = useCallback(() => {
-    const activity = getLastActivity();
-    if (!activity) return;
-
-    // Utilisation du mapping EXERCISE_ROUTES pour éviter la duplication
-    const route = EXERCISE_ROUTES[activity.type];
-
-    if (route) {
-      navigation.navigate(route, {
-        level: activity.level,
-        exerciseId: activity.id,
-      });
+  const updateProgress = useCallback(async (exerciseId, type, level, completed, total) => {
+    const progressValue = Math.round((completed / total) * 100);
+    const key = `${type}_${level}_${exerciseId}`;
+    
+    // Sauvegarder dans le store
+    setProgress(key, progressValue);
+    
+    // Persister dans AsyncStorage
+    try {
+      await AsyncStorage.setItem(`progress_${key}`, JSON.stringify({
+        value: progressValue,
+        timestamp: Date.now()
+      }));
+    } catch (error) {
+      console.error('Error saving progress:', error);
     }
-  }, [getLastActivity, navigation]);
+  }, [setProgress]);
 
-  // Fonction pour mettre à jour la progression
-  const updateProgress = useCallback(
-    (exerciseId, type, level, completed, total) => {
-      if (typeof updateExerciseProgress === "function") {
-        updateExerciseProgress(exerciseId, type, level, completed, total);
-      } else {
-        console.warn("updateExerciseProgress is not available");
-      }
-    },
-    [updateExerciseProgress]
-  );
-
-  return {
-    isLoading,
-    getLastActivity,
-    getLevelProgress,
-    getAllLevelProgress,
-    getExerciseTypeProgress,
-    getExerciseProgress,
-    updateProgress,
-    resumeLastActivity,
-  };
+  return { updateProgress };
 };
 
 export default useProgress;

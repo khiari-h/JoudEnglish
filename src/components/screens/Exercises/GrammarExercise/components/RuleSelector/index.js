@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, ScrollView } from 'react-native';
 import styles from './style';
-import Button from '../../../../../ui/Button';
+import Button from '../../../../../common/ui/Button';
 
 /**
  * Composant pour la sélection des règles grammaticales
