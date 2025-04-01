@@ -2,8 +2,8 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useLastExercise } from '../../../hooks/useLastExercise';
-import { useAppNavigation } from '../../../hooks/useAppNavigation';
+import { useLastExercise } from '../../../../../hooks/useLastExercise';  // Correction du chemin
+import { useAppNavigation } from '../../../../../hooks/useAppNavigation';  // Correction du chemin
 import styles from './styles';
 
 const ContinueLearning = () => {

@@ -3,8 +3,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 // Import des écrans principaux
 import Dashboard from '../components/screens/Dashboard';
-import LevelSelection from '../components/screens/LevelSelection';
-import ExerciseSelection from '../screens/ExerciseSelection';
+import LevelSelection from '../components/screens/LevelSelection';  // Correction du chemin
+import ExerciseSelection from '../components/screens/ExerciseSelection';  // Correction du chemin
 
 // Import des exercices
 import {
@@ -17,7 +17,7 @@ import {
   SpellingExercise,
   ChatbotWriting,
   LevelAssessment
-} from '../screens/Exercises';
+} from '../components/screens/Exercises';  // Correction du chemin
 
 // Import des écrans des résultats
 import ExerciseResults from '../screens/ExerciseResults';
