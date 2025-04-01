@@ -47,7 +47,16 @@ const useScenarioData = (level) => {
       C1: chatbotC1Data,
       C2: chatbotC2Data,
     };
-    return dataMap[levelCode] || chatbotA1Data; // Par défaut, renvoyer les données A1
+    
+    // Vérifier si les données pour ce niveau existent et ont la structure attendue
+    const levelData = dataMap[levelCode];
+    if (levelData && levelData.exercises && levelData.exercises.length > 0) {
+      return levelData;
+    } else {
+      // Si les données sont vides ou mal structurées, utiliser A1 comme fallback
+      console.warn(`Données manquantes pour le niveau ${levelCode}, utilisation des données A1 à la place`);
+      return chatbotA1Data;
+    }
   };
 
   // Initialiser avec les données appropriées en fonction du niveau
@@ -55,7 +64,7 @@ const useScenarioData = (level) => {
     const exerciseData = getChatbotData(level);
 
     // Définir tous les scénarios disponibles
-    if (exerciseData.exercises && exerciseData.exercises.length > 0) {
+    if (exerciseData && exerciseData.exercises && exerciseData.exercises.length > 0) {
       setAllScenarios(exerciseData.exercises);
     } else {
       // Gérer le cas où les données n'ont pas la structure attendue
