@@ -22,7 +22,7 @@ import HelpSection from "./components/HelpSection";
 import { useExerciseState } from "../../../../hooks/common";
 import useProgress from "../../../../hooks/useProgress";
 import useChatLogic from "./hooks/useChatLogic";
-import { getChatScenariosByLevel } from "./utils/dataUtils";
+import { exercises } from "../../../../data/exercises";
 import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes";
 
 // Import des styles
@@ -47,7 +47,7 @@ const ChatbotWriting = ({ navigation }) => {
 
   // Charger les données des scénarios
   useEffect(() => {
-    const data = getChatScenariosByLevel(level);
+    const data = exercises.chatbot[level] || [];
     setScenariosData(data);
   }, [level]);
 
