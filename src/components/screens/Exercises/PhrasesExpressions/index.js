@@ -1,6 +1,6 @@
 // src/components/screens/Exercises/PhrasesExpressions/index.js
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, ScrollView } from "react-native";
+import { SafeAreaView, FlatList, Text, View } from "react-native";
 import { useRoute } from "@react-navigation/native";
 
 // Import des composants
@@ -32,6 +32,7 @@ const PhrasesExpressions = ({ navigation }) => {
   const [selectedCategoryIndex, setSelectedCategoryIndex] = useState(0);
   const [selectedPhrase, setSelectedPhrase] = useState(null);
   const [viewedPhrases, setViewedPhrases] = useState({});
+  const [filteredPhrases, setFilteredPhrases] = useState([]);
 
   // Charger les données des phrases
   useEffect(() => {
@@ -52,6 +53,10 @@ const PhrasesExpressions = ({ navigation }) => {
   const currentCategory = phrasesData.categories[selectedCategoryIndex] || {
     phrases: [],
   };
+
+  useEffect(() => {
+    setFilteredPhrases(currentCategory.phrases || []);
+  }, [currentCategory]);
 
   // Utiliser le hook générique d'exercice
   const {
@@ -180,61 +185,44 @@ const PhrasesExpressions = ({ navigation }) => {
     return () => clearTimeout(timer);
   }, [selectedPhraseIndex, selectedCategoryIndex]);
 
+  const renderPhraseItem = ({ item }) => (
+    <PhraseCard
+      categoryName={currentCategory.name}
+      phrase={item}
+      onShowDetails={() => openPhraseDetails(item)}
+      isViewed={viewedPhrases[selectedCategoryIndex]?.includes(
+        currentCategory.phrases.indexOf(item)
+      )}
+    />
+  );
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* En-tête */}
-      <PhraseHeader
-        level={level}
-        levelColor={levelColor}
-        onGoBack={handleGoBack}
-      />
+    <SafeAreaView style={styles.container}>
+      {phrasesData && phrasesData.categories ? (
+        <>
+          <CategorySelector
+            categories={phrasesData.categories}
+            selectedCategoryIndex={selectedCategoryIndex}
+            onSelectCategory={handleCategoryChange}
+            levelColor={levelColor}
+          />
 
-      {/* Sélecteur de catégories */}
-      <CategorySelector
-        categories={phrasesData.categories}
-        selectedCategoryIndex={selectedCategoryIndex}
-        onSelectCategory={handleCategoryChange}
-        levelColor={levelColor}
-      />
-
-      {/* Barre de progression */}
-      <ProgressBar
-        currentIndex={selectedPhraseIndex}
-        totalCount={currentCategory.phrases.length}
-        levelColor={levelColor}
-      />
-
-      {/* Contenu principal */}
-      <ScrollView
-        style={[styles.scrollView, { backgroundColor: `${levelColor}05` }]}
-        contentContainerStyle={styles.contentContainer}
-      >
-        {/* Phrase courante */}
-        <PhraseCard
-          categoryName={currentCategory.name}
-          phrase={currentPhrase}
-          onShowDetails={() => openPhraseDetails(currentPhrase)}
-          isViewed={viewedPhrases[selectedCategoryIndex]?.includes(
-            selectedPhraseIndex
-          )}
-        />
-      </ScrollView>
-
-      {/* Boutons de navigation */}
-      <NavigationButtons
-        onPrevious={goToPrevious}
-        onNext={handleNext} // Utiliser notre fonction personnalisée
-        canGoToPrevious={canGoToPrevious}
-        canGoToNext={canGoToNext}
-        levelColor={levelColor}
-      />
-
-      {/* Modal de détails */}
-      <PhraseDetailModal
-        phrase={selectedPhrase}
-        visible={!!selectedPhrase}
-        onClose={closePhraseDetails}
-      />
+          <FlatList
+            data={filteredPhrases}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderPhraseItem}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>
+                No phrases available for this category
+              </Text>
+            }
+          />
+        </>
+      ) : (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading phrases...</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 };

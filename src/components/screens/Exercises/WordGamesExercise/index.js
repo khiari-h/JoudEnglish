@@ -1,6 +1,6 @@
 // src/components/screens/Exercises/WordGamesExercise/index.js
 import React, { useState, useEffect } from "react";
-import { View, SafeAreaView, ScrollView, Animated } from "react-native";
+import { View, SafeAreaView, ScrollView, Animated, Text } from "react-native";
 import { useRoute } from "@react-navigation/native";
 
 // Import des composants
@@ -80,7 +80,7 @@ const WordGamesExercise = ({ navigation }) => {
   const {
     currentIndex: currentGameIndex,
     setCurrentIndex: setCurrentGameIndex,
-    currentExercise: currentGame,
+    currentExercise, // Renommer cette variable
     showFeedback,
     isCorrect,
     progress,
@@ -98,6 +98,26 @@ const WordGamesExercise = ({ navigation }) => {
     checkAnswerFn: checkGameAnswer,
     autoSaveProgress: false, // On va gérer la progression manuellement
   });
+
+  // Sécuriser l'accès aux données de jeux
+  if (!gamesData || !gamesData.games || gamesData.games.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <GameHeader
+          level={level}
+          levelColor={levelColor}
+          navigation={navigation}
+          title="Word Games"
+        />
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No games available</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Utiliser currentExercise au lieu de redéclarer currentGame
+  const currentGame = gamesData.games[currentGameIndex];
 
   // Quand le jeu change, configurer le timer si nécessaire
   useEffect(() => {
@@ -141,11 +161,11 @@ const WordGamesExercise = ({ navigation }) => {
 
       // Mettre à jour la progression dans le système global
       updateProgress(
-        `word_games_${level.toLowerCase()}`, // ID unique pour ce type et niveau
-        EXERCISE_TYPES.WORD_GAMES, // Type d'exercice
-        level, // Niveau (A1, A2, etc.)
-        completedGames, // Nombre d'éléments complétés
-        totalGames // Nombre total d'éléments
+        `word_games_${level.toLowerCase()}`,
+        EXERCISE_TYPES.WORD_GAMES,
+        level,
+        completedGames,
+        totalGames
       );
 
       return newResults;

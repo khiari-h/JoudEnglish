@@ -1,7 +1,11 @@
 // Dashboard/styles/theme.js (version complète et corrigée)
 const theme = {
     colors: {
-      primary: "#5E60CE",
+      primary: {
+        light: '#f1f5f9',
+        main: '#64748b',
+        dark: '#334155',
+      },
       secondary: "#6930C3",
       accent: "#7764E4",
       background: "#F9FAFB",
@@ -16,14 +20,22 @@ const theme = {
       challenge: {
         badge: "#FEF3C7",
         badgeText: "#D97706"
+      },
+      success: {
+        light: '#f0fdf4',
+        main: '#22c55e',
+      },
+      error: {
+        light: '#fef2f2', 
+        main: '#ef4444',
       }
     },
     spacing: {
-      xs: 5,
-      sm: 10,
-      md: 15,
-      lg: 20,
-      xl: 30
+      xs: 4,
+      sm: 8,
+      md: 16,
+      lg: 24,
+      xl: 32
     },
     fontSize: {
       xs: 10,
@@ -35,11 +47,11 @@ const theme = {
       xxxl: 22
     },
     borderRadius: {
-      xs: 4,
-      sm: 10,
-      md: 15,
-      lg: 20,
-      xl: 25
+      sm: 4,
+      md: 8,
+      lg: 16,
+      xl: 24,
+      full: 9999
     },
     // Ajout des propriétés shadows manquantes
     shadows: {
@@ -67,6 +79,16 @@ const theme = {
           shadowOpacity: 0.2,
           shadowRadius: 6,
         }
+      }
+    },
+    constants: {
+      levels: {
+        A1: 'A1',
+        A2: 'A2',
+        B1: 'B1',
+        B2: 'B2',
+        C1: 'C1',
+        C2: 'C2'
       }
     }
   };

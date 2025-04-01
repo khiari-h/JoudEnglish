@@ -1,43 +1,30 @@
 // components/common/ProgressBar/index.js
-import React from "react";
-import { View, Text } from "react-native";
-import styles from "./styles";
+import React from 'react';
+import { View, Text } from 'react-native';
+import styles from './styles';
 
-const ProgressBar = ({ 
-  progress, 
-  total, 
-  color, 
-  showText = true, 
-  textPosition = "right" 
+const ProgressBar = ({
+  current,
+  total,
+  levelColor,
+  showText = true,
+  style
 }) => {
-  const progressPercentage = (progress / total) * 100;
+  const progress = Math.round((current / total) * 100);
   
   return (
-    <View style={styles.container}>
-      {showText && textPosition === "top" && (
-        <Text style={styles.progressText}>
-          {progress}/{total}
-        </Text>
-      )}
-      <View style={styles.progressBar}>
-        <View
+    <View style={[styles.container, style]}>
+      <View style={styles.progressTrack}>
+        <View 
           style={[
             styles.progressFill,
-            {
-              width: `${progressPercentage}%`,
-              backgroundColor: color,
-            },
+            { width: `${progress}%`, backgroundColor: levelColor }
           ]}
         />
       </View>
-      {showText && textPosition === "right" && (
+      {showText && (
         <Text style={styles.progressText}>
-          {progress}/{total}
-        </Text>
-      )}
-      {showText && textPosition === "percentage" && (
-        <Text style={styles.progressText}>
-          {progressPercentage.toFixed(0)}%
+          {current} / {total}
         </Text>
       )}
     </View>

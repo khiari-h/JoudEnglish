@@ -1,6 +1,6 @@
 // src/components/screens/Exercises/GrammarExercise/index.js
-import React from "react";
-import { ScrollView, SafeAreaView } from "react-native";
+import React, { useCallback, useMemo } from "react";
+import { ScrollView, SafeAreaView, View, Text } from "react-native";
 import { useRoute } from "@react-navigation/native";
 
 // Import des composants
@@ -45,6 +45,7 @@ const GrammarExercise = ({ navigation }) => {
     attempts,
     completedExercises,
     grammarData,
+    rules,
     currentRule,
     currentExercise,
     isLastExercise,
@@ -55,8 +56,22 @@ const GrammarExercise = ({ navigation }) => {
     canCheckAnswer,
     goToNextExercise,
     goToPreviousExercise,
-    handleRuleChange
+    handleRuleChange,
+    exercises
   } = useGrammarExercise(level);
+
+  // Sécuriser l'accès aux données
+  const currentRuleData = rules?.[selectedRuleIndex];
+  const currentExerciseData = currentRuleData?.exercises?.[currentExerciseIndex];
+
+  // Garder contre les données manquantes
+  if (!rules || rules.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No grammar exercises available</Text>
+      </View>
+    );
+  }
 
   // Mettre à jour la progression globale de grammaire
   const updateGrammarProgress = () => {
@@ -115,6 +130,16 @@ const GrammarExercise = ({ navigation }) => {
     return null;
   }
 
+  // Optimisation des performances
+  const memoizedHandleAnswer = useCallback((answer) => {
+    checkAnswer(answer);
+  }, [checkAnswer]);
+
+  // Utiliser useMemo pour les données filtrées
+  const filteredExercises = useMemo(() => {
+    return exercises.filter(/* ... */);
+  }, [exercises]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* En-tête avec badge de niveau et titre */}
@@ -124,13 +149,15 @@ const GrammarExercise = ({ navigation }) => {
         navigation={navigation}
       />
 
-      {/* Sélecteur de règle grammaticale */}
-      <RuleSelector
-        rules={grammarData.categories}
-        selectedRuleIndex={selectedRuleIndex}
-        onRuleChange={handleRuleChange}
-        levelColor={levelColor}
-      />
+      {/* Sécuriser les rendus conditionnels */}
+      {rules && (
+        <RuleSelector
+          rules={rules}
+          selectedRuleIndex={selectedRuleIndex}
+          onRuleChange={handleRuleChange}
+          levelColor={levelColor}
+        />
+      )}
 
       {/* Barre de progression */}
       <ProgressBar
@@ -149,10 +176,10 @@ const GrammarExercise = ({ navigation }) => {
         {/* Affichage de la règle */}
         <RuleDisplay rule={currentRule} />
 
-        {/* Exercice en cours */}
-        {currentExercise && (
+        {/* Sécuriser les rendus conditionnels */}
+        {currentExerciseData && (
           <ExerciseContainer
-            exercise={currentExercise}
+            exercise={currentExerciseData}
             selectedOption={selectedOption}
             setSelectedOption={setSelectedOption}
             inputText={inputText}

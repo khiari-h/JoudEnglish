@@ -1,6 +1,6 @@
 // src/components/screens/Exercises/ReadingExercise/index.js
 import React, { useState, useEffect, useRef } from "react";
-import { View, SafeAreaView, ScrollView, Animated } from "react-native";
+import { View, SafeAreaView, ScrollView, Animated, Text, Button } from "react-native";
 import { useRoute } from "@react-navigation/native";
 
 // Import des composants
@@ -224,32 +224,50 @@ const ReadingExercise = ({ navigation }) => {
     goToNextQuestion();
   };
 
+  if (!readingData?.length) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>No reading exercises available</Text>
+        <Button 
+          title="Go Back" 
+          onPress={navigation.goBack}
+          style={styles.errorButton}
+        />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* En-tête */}
       <ReadingHeader
         level={level}
         levelColor={levelColor}
         navigation={navigation}
-        title={currentExercise.title || "Reading Exercise"}
+        title={currentExercise?.title || "Reading Exercise"}
       />
 
-      {/* Sélecteur de textes */}
-      <TextSelector
-        texts={readingData}
-        selectedIndex={selectedExerciseIndex}
-        onSelectText={handleTextChange}
-        levelColor={levelColor}
-        scrollViewRef={textsScrollViewRef}
-      />
+      {/* Sécuriser l'accès aux données */}
+      {readingData && readingData.length > 0 ? (
+        <TextSelector
+          texts={readingData}
+          selectedIndex={selectedExerciseIndex}
+          onSelectText={handleTextChange}
+          levelColor={levelColor}
+          scrollViewRef={textsScrollViewRef}
+        />
+      ) : (
+        <Text style={styles.emptyText}>No reading texts available</Text>
+      )}
 
-      {/* Barre de progression */}
-      <ProgressBar
-        progress={progress}
-        completedQuestions={currentQuestionIndex}
-        totalQuestions={currentExercise.questions?.length || 0}
-        levelColor={levelColor}
-      />
+      {/* Sécuriser l'accès aux questions */}
+      {currentExercise?.questions ? (
+        <ProgressBar
+          progress={progress}
+          completedQuestions={currentQuestionIndex}
+          totalQuestions={currentExercise.questions.length}
+          levelColor={levelColor}
+        />
+      ) : null}
 
       {/* Contenu principal */}
       <ScrollView
