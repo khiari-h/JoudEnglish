@@ -1,18 +1,18 @@
 // src/components/screens/Exercises/ErrorCorrectionExercise/index.js
-import React, { useState, useEffect, useRef } from "react";
-import { View, SafeAreaView } from "react-native";
+import React, { useState, useEffect } from "react";
 import { useRoute } from "@react-navigation/native";
 
+import BaseExercise from "../../../common/BaseExercise";
+import { NavigationButton, IconButton } from '../../../common/Navigation';
+import { AnimatedFeedback, ExerciseFeedback } from '../../../common/Feedback';
+
 // Import des composants
-import ExerciseHeader from "./components/ExerciceHeader";
 import BrowseMode from "./components/BrowseMode";
 import ExerciseMode from "./components/ExerciseMode";
 import ResultsMode from "./components/ResultsMode";
 
 // Import des hooks personnalisés
-import { useExerciseState, useAnimations } from "../../../../hooks/common";
 import useProgress from "../../../../hooks/useProgress"; // Ajout du hook de progression
-import { getErrorCorrectionDataByLevel } from "./utils/dataUtils";
 import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes"; // Ajout des constantes de types d'exercices
 
 // Import des styles
@@ -28,19 +28,13 @@ const ErrorCorrectionExercise = ({ navigation }) => {
   // Utiliser le hook de progression
   const { updateProgress } = useProgress();
 
-  // États spécifiques à la correction d'erreurs
   const [viewMode, setViewMode] = useState("browse"); // 'browse', 'exercise', 'results'
   const [exercisesData, setExercisesData] = useState({ categories: [] });
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [correctionMode, setCorrectionMode] = useState("full"); // 'full', 'identify', 'multiple_choice'
   const [userCorrection, setUserCorrection] = useState("");
   const [selectedErrorIndices, setSelectedErrorIndices] = useState([]);
-  const [selectedChoiceIndex, setSelectedChoiceIndex] = useState(null);
   const [showHint, setShowHint] = useState(false);
   const [results, setResults] = useState([]);
-
-  // Animations
-  const { fadeAnim, scaleAnim, animateIn, resetAnimations } = useAnimations();
 
   // Charger les données d'exercice
   useEffect(() => {
@@ -115,7 +109,6 @@ const ErrorCorrectionExercise = ({ navigation }) => {
     if (correctionMode === "full") {
       setUserAnswer(userCorrection);
     } else if (correctionMode === "identify") {
-      setUserAnswer(selectedErrorIndices);
     } else if (correctionMode === "multiple_choice") {
       setUserAnswer(selectedChoiceIndex);
     }
@@ -197,8 +190,6 @@ const ErrorCorrectionExercise = ({ navigation }) => {
     setSelectedErrorIndices([]);
     setSelectedChoiceIndex(null);
     setShowHint(false);
-    resetAnimations();
-    animateIn();
   };
 
   // Gérer le clic sur un mot (pour l'identification d'erreurs)
@@ -213,7 +204,6 @@ const ErrorCorrectionExercise = ({ navigation }) => {
     } else {
       newIndices.splice(indexPosition, 1);
     }
-
     setSelectedErrorIndices(newIndices);
   };
 
@@ -227,7 +217,6 @@ const ErrorCorrectionExercise = ({ navigation }) => {
           isCorrect: true,
         })),
       ]);
-
       // Mettre à jour une dernière fois la progression
       updateProgress(
         `error_correction_${level.toLowerCase()}_${
@@ -238,12 +227,9 @@ const ErrorCorrectionExercise = ({ navigation }) => {
         completedItems.length,
         exercises.length
       );
-
       setViewMode("results");
     } else {
       goToNext();
-      resetAnimations();
-      animateIn();
       setUserCorrection("");
       setSelectedErrorIndices([]);
       setSelectedChoiceIndex(null);
@@ -251,18 +237,9 @@ const ErrorCorrectionExercise = ({ navigation }) => {
     }
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* En-tête */}
-      <ExerciseHeader
-        level={level}
-        levelColor={levelColor}
-        navigation={navigation}
-        title="Error Correction"
-      />
-
-      {/* Mode navigation */}
-      {viewMode === "browse" && (
+  const renderContent = () => {
+    if (viewMode === "browse") {
+      return (
         <BrowseMode
           exercisesData={exercisesData}
           selectedCategory={selectedCategory}
@@ -271,10 +248,9 @@ const ErrorCorrectionExercise = ({ navigation }) => {
           startExercise={startExercise}
           levelColor={levelColor}
         />
-      )}
-
-      {/* Mode exercice */}
-      {viewMode === "exercise" && (
+      );
+    } else if (viewMode === "exercise") {
+      return (
         <ExerciseMode
           exercises={exercises}
           currentExerciseIndex={currentIndex}
@@ -293,21 +269,30 @@ const ErrorCorrectionExercise = ({ navigation }) => {
           goToNextExercise={handleNext}
           setViewMode={setViewMode}
           levelColor={levelColor}
-          fadeAnim={fadeAnim}
-          scaleAnim={scaleAnim}
         />
-      )}
-
-      {/* Mode résultats */}
-      {viewMode === "results" && (
+      );
+    } else {
+      return (
         <ResultsMode
           results={results}
           totalExercises={exercises.length}
           levelColor={levelColor}
           onStartOver={() => setViewMode("browse")}
         />
-      )}
-    </SafeAreaView>
+      );
+    }
+  };
+
+  return (
+    <BaseExercise
+      title="Error Correction"
+      level={level}
+      levelColor={levelColor}
+      progress={progress}
+      onBack={handleGoBack}
+    >
+      {renderContent()}
+    </BaseExercise>
   );
 };
 

@@ -1,16 +1,8 @@
 // src/components/screens/Exercises/GrammarExercise/index.js
 import React from "react";
-import { ScrollView, SafeAreaView } from "react-native";
-import { useRoute } from "@react-navigation/native";
-
-// Import des composants
-import ExerciseHeader from "./components/ExerciceHeader";
-import RuleSelector from "./components/RuleSelector";
-import ProgressBar from "./components/ProgressBar";
-import RuleDisplay from "./components/RuleDisplay";
-import ExerciseContainer from "./components/ExerciseContainer";
-import FeedbackDisplay from "./components/FeedbackDisplay";
-import ExerciseActions from "./components/ExerciceActions";
+import BaseExercise from "../../../common/BaseExercise";
+import { NavigationButton, IconButton } from '../../../common/Navigation';
+import { AnimatedFeedback, ExerciseFeedback } from '../../../common/Feedback';
 
 // Import des hooks personnalisés
 import useGrammarExercise from "./hooks/useGrammarExercise";
@@ -18,15 +10,11 @@ import useProgress from "../../../../hooks/useProgress";
 import { getLevelColor } from "./utils/levelUtils";
 import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes";
 
-// Import des styles
-import styles from "./style";
-
 /**
  * Composant principal pour les exercices de grammaire
  */
 const GrammarExercise = ({ navigation }) => {
-  const route = useRoute();
-  const { level } = route.params || { level: "A1" };
+  const { level } = useRoute().params || { level: "A1" };
   const levelColor = getLevelColor(level);
 
   // Utiliser le hook de progression
@@ -110,85 +98,55 @@ const GrammarExercise = ({ navigation }) => {
     goToNextExercise();
   };
 
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
+  const renderActions = () => (
+    <ExerciseActions
+      showFeedback={showFeedback}
+      isCorrect={isCorrect}
+      attempts={attempts}
+      onCheck={checkAnswer}
+      onNext={handleNextExercise}
+      onPrevious={goToPreviousExercise}
+      onRetry={retryExercise}
+      isLastExercise={isLastExercise}
+      canCheck={canCheckAnswer()}
+      currentExerciseIndex={currentExerciseIndex}
+      levelColor={levelColor}
+    />
+  );
+
   // Si les données ne sont pas encore chargées
   if (!grammarData) {
     return null;
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* En-tête avec badge de niveau et titre */}
-      <ExerciseHeader
-        level={level}
-        levelColor={levelColor}
-        navigation={navigation}
-      />
-
-      {/* Sélecteur de règle grammaticale */}
+    <BaseExercise
+      title="Grammar Exercise"
+      level={level}
+      levelColor={levelColor}
+      progress={progress}
+      onBack={handleGoBack}
+      renderActions={renderActions}
+    >
       <RuleSelector
         rules={grammarData.categories}
         selectedRuleIndex={selectedRuleIndex}
         onRuleChange={handleRuleChange}
         levelColor={levelColor}
       />
-
-      {/* Barre de progression */}
-      <ProgressBar
-        currentIndex={currentExerciseIndex}
-        totalCount={currentRule?.exercises?.length || 0}
-        progress={progress}
-        levelColor={levelColor}
-      />
-
-      {/* Contenu principal */}
-      <ScrollView
-        style={[styles.scrollView, { backgroundColor: `${levelColor}05` }]}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Affichage de la règle */}
-        <RuleDisplay rule={currentRule} />
-
-        {/* Exercice en cours */}
-        {currentExercise && (
-          <ExerciseContainer
-            exercise={currentExercise}
-            selectedOption={selectedOption}
-            setSelectedOption={setSelectedOption}
-            inputText={inputText}
-            setInputText={setInputText}
-            showFeedback={showFeedback}
-            isCorrect={isCorrect}
-            levelColor={levelColor}
-          />
-        )}
-
-        {/* Feedback après réponse */}
-        {showFeedback && (
-          <FeedbackDisplay
-            isCorrect={isCorrect}
-            exercise={currentExercise}
-            attempts={attempts}
-            levelColor={levelColor}
-          />
-        )}
-      </ScrollView>
-
-      {/* Boutons d'action */}
-      <ExerciseActions
+      <ExerciseContainer
+        exercise={currentExercise}
+        userAnswer={inputText}
+        setUserAnswer={setInputText}
         showFeedback={showFeedback}
         isCorrect={isCorrect}
-        attempts={attempts}
-        onCheck={checkAnswer}
-        onNext={handleNextExercise}
-        onPrevious={goToPreviousExercise}
-        onRetry={retryExercise}
-        isLastExercise={isLastExercise}
-        canCheck={canCheckAnswer()}
-        currentExerciseIndex={currentExerciseIndex}
         levelColor={levelColor}
       />
-    </SafeAreaView>
+    </BaseExercise>
   );
 };
 

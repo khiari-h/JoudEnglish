@@ -1,25 +1,19 @@
 // src/components/screens/Exercises/LevelAssessment/index.js
 import React, { useState, useEffect } from "react";
-import { View, SafeAreaView, ScrollView } from "react-native";
 import { useRoute } from "@react-navigation/native";
 
 // Import des composants
-import AssessmentHeader from "./components/AssessmentHeader";
-import ProgressBar from "./components/ProgressBar";
-import QuestionCard from "./components/QuestionCard";
-import AnswerOptions from "./components/AnswerOptions";
-import FeedbackDisplay from "./components/FeedbackDisplay";
-import ActionButtons from "./components/ActionButtons";
-import ResultsScreen from "./components/ResultsScreen";
+import BaseExercise from "../../../common/BaseExercise";
+import AssessmentContent from "./components/AssessmentContent";
+import AssessmentActions from "./components/AssessmentActions";
+import { NavigationButton, IconButton } from '../../../common/Navigation';
+import { AnimatedFeedback, ExerciseFeedback } from '../../../common/Feedback';
 
 // Import des hooks personnalisés
 import { useExerciseState, useAnimations } from "../../../../hooks/common";
 import useProgress from "../../../../hooks/useProgress"; // Ajout du hook de progression
 import { getAssessmentDataByLevel } from "./utils/levelUtils";
 import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes"; // Ajout des constantes de types d'exercices
-
-// Import des styles
-import styles from "./style";
 
 /**
  * Composant principal pour l'évaluation de niveau
@@ -228,70 +222,26 @@ const LevelAssessment = ({ navigation }) => {
     );
   }
 
+  const renderActions = () => (
+    <AssessmentActions
+      onNext={goToNext}
+      onSubmit={checkAnswer}
+      levelColor={levelColor}
+    />
+  );
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* En-tête */}
-      <AssessmentHeader
-        level={level}
-        levelColor={levelColor}
-        navigation={navigation}
-        title={`${currentSectionData.title || "Assessment"}`}
-      />
-
-      {/* Barre de progression */}
-      <ProgressBar
-        progress={progress}
-        currentSection={currentSection + 1}
-        totalSections={assessmentData.sections.length}
-        levelColor={levelColor}
-      />
-
-      {/* Contenu principal */}
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Question actuelle */}
-        {currentQuestion && (
-          <QuestionCard question={currentQuestion} levelColor={levelColor} />
-        )}
-
-        {/* Options de réponse */}
-        {currentQuestion && (
-          <AnswerOptions
-            options={currentQuestion.options}
-            selectedAnswer={selectedAnswer}
-            onSelectAnswer={setSelectedAnswer}
-            showFeedback={showFeedback}
-            correctAnswer={currentQuestion.correctAnswer}
-            levelColor={levelColor}
-          />
-        )}
-
-        {/* Feedback */}
-        {showFeedback && (
-          <FeedbackDisplay
-            isCorrect={isCorrect}
-            question={currentQuestion}
-            selectedAnswer={selectedAnswer}
-          />
-        )}
-      </ScrollView>
-
-      {/* Boutons d'action */}
-      <ActionButtons
-        showFeedback={showFeedback}
-        isCorrect={isCorrect}
-        selectedAnswer={selectedAnswer}
-        onCheck={checkAnswer}
-        onNext={goToNext}
-        onRetry={retryExercise}
-        canCheck={canCheckAnswer()}
-        levelColor={levelColor}
-        style={styles.actionButtons}
-      />
-    </SafeAreaView>
+    <BaseExercise
+      title="Level Assessment"
+      level={level}
+      levelColor={levelColor}
+      progress={progress}
+      onBack={handleGoBack}
+      renderActions={renderActions}
+      showProgressBar={false}
+    >
+      <AssessmentContent />
+    </BaseExercise>
   );
 };
 

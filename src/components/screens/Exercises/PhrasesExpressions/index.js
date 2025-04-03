@@ -1,24 +1,19 @@
 // src/components/screens/Exercises/PhrasesExpressions/index.js
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, ScrollView } from "react-native";
 import { useRoute } from "@react-navigation/native";
 
 // Import des composants
-import PhraseHeader from "./components/PhraseHeader";
-import CategorySelector from "./components/CategorySelector";
-import ProgressBar from "./components/ProgressBar";
+import BaseExercise from "../../../common/BaseExercise";
 import PhraseCard from "./components/PhraseCard";
 import NavigationButtons from "./components/NavigationButtons";
-import PhraseDetailModal from "./components/PhraseDetailModal";
+import { NavigationButton, IconButton } from '../../../common/Navigation';
+import { AnimatedFeedback, ExerciseFeedback } from '../../../common/Feedback';
 
 // Import des hooks personnalisés
 import { useExerciseState } from "../../../../hooks/common";
 import useProgress from "../../../../hooks/useProgress"; // Ajout du hook de progression
 import { getPhrasesDataByLevel } from "./utils/dataUtils";
 import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes"; // Ajout des constantes de types d'exercices
-
-// Import des styles
-import styles from "./style";
 
 const PhrasesExpressions = ({ navigation }) => {
   const route = useRoute();
@@ -146,96 +141,29 @@ const PhrasesExpressions = ({ navigation }) => {
     goToNext();
   };
 
-  // Changer de catégorie
-  const handleCategoryChange = (index) => {
-    if (index !== selectedCategoryIndex) {
-      // Sauvegarder la progression avant de changer de catégorie
-      markPhraseAsViewed();
-
-      setSelectedCategoryIndex(index);
-      setSelectedPhraseIndex(0);
-    }
+  const handlePrevious = () => {
+    goToPrevious();
   };
 
-  // Ouvrir les détails d'une phrase et la marquer comme vue
-  const openPhraseDetails = (phrase) => {
-    // Marquer la phrase comme vue quand on ouvre les détails
-    markPhraseAsViewed();
-
-    setSelectedPhrase(phrase);
-  };
-
-  // Fermer les détails
-  const closePhraseDetails = () => {
-    setSelectedPhrase(null);
-  };
-
-  // Mettre à jour la progression quand la phrase change
-  useEffect(() => {
-    // Marquer la phrase comme vue après un court délai
-    const timer = setTimeout(() => {
-      markPhraseAsViewed();
-    }, 2000); // Supposons qu'après 2 secondes, l'utilisateur a "vu" la phrase
-
-    return () => clearTimeout(timer);
-  }, [selectedPhraseIndex, selectedCategoryIndex]);
+  const renderActions = () => (
+    <NavigationButtons
+      onNext={handleNext}
+      onPrevious={handlePrevious}
+      levelColor={levelColor}
+    />
+  );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* En-tête */}
-      <PhraseHeader
-        level={level}
-        levelColor={levelColor}
-        onGoBack={handleGoBack}
-      />
-
-      {/* Sélecteur de catégories */}
-      <CategorySelector
-        categories={phrasesData.categories}
-        selectedCategoryIndex={selectedCategoryIndex}
-        onSelectCategory={handleCategoryChange}
-        levelColor={levelColor}
-      />
-
-      {/* Barre de progression */}
-      <ProgressBar
-        currentIndex={selectedPhraseIndex}
-        totalCount={currentCategory.phrases.length}
-        levelColor={levelColor}
-      />
-
-      {/* Contenu principal */}
-      <ScrollView
-        style={[styles.scrollView, { backgroundColor: `${levelColor}05` }]}
-        contentContainerStyle={styles.contentContainer}
-      >
-        {/* Phrase courante */}
-        <PhraseCard
-          categoryName={currentCategory.name}
-          phrase={currentPhrase}
-          onShowDetails={() => openPhraseDetails(currentPhrase)}
-          isViewed={viewedPhrases[selectedCategoryIndex]?.includes(
-            selectedPhraseIndex
-          )}
-        />
-      </ScrollView>
-
-      {/* Boutons de navigation */}
-      <NavigationButtons
-        onPrevious={goToPrevious}
-        onNext={handleNext} // Utiliser notre fonction personnalisée
-        canGoToPrevious={canGoToPrevious}
-        canGoToNext={canGoToNext}
-        levelColor={levelColor}
-      />
-
-      {/* Modal de détails */}
-      <PhraseDetailModal
-        phrase={selectedPhrase}
-        visible={!!selectedPhrase}
-        onClose={closePhraseDetails}
-      />
-    </SafeAreaView>
+    <BaseExercise
+      title="Phrases & Expressions"
+      level={level}
+      levelColor={levelColor}
+      progress={progress}
+      onBack={handleGoBack}
+      renderActions={renderActions}
+    >
+      <PhraseCard />
+    </BaseExercise>
   );
 };
 

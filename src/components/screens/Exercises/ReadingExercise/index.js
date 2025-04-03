@@ -1,15 +1,14 @@
 // src/components/screens/Exercises/ReadingExercise/index.js
 import React, { useState, useEffect, useRef } from "react";
-import { View, SafeAreaView, ScrollView, Animated } from "react-native";
+import BaseExercise from "../../../common/BaseExercise";
+import { NavigationButton, IconButton } from '../../../common/Navigation';
+import { AnimatedFeedback, ExerciseFeedback } from '../../../common/Feedback';
 import { useRoute } from "@react-navigation/native";
 
 // Import des composants
-import ReadingHeader from "./components/ReadingHeader";
 import TextSelector from "./components/TextSelector";
-import ProgressBar from "./components/ProgressBar";
 import ReadingText from "./components/ReadingText";
 import QuestionCard from "./components/QuestionCard";
-import QuestionIndicators from "./components/QuestionIndicators";
 import ActionButtons from "./components/ActionButtons";
 
 // Import des hooks personnalisés
@@ -224,99 +223,56 @@ const ReadingExercise = ({ navigation }) => {
     goToNextQuestion();
   };
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* En-tête */}
-      <ReadingHeader
-        level={level}
-        levelColor={levelColor}
-        navigation={navigation}
-        title={currentExercise.title || "Reading Exercise"}
-      />
+  const renderActions = () => (
+    <ActionButtons
+      showFeedback={showFeedback}
+      selectedAnswer={selectedAnswer}
+      isCorrect={isCorrect}
+      attempts={attempts}
+      canGoPrevious={canGoToPrevious}
+      isLastQuestion={isLastQuestion}
+      onSubmit={checkAnswer}
+      onNext={handleNextQuestion}
+      onPrevious={goToPreviousQuestion}
+      onRetry={retryExercise}
+      levelColor={levelColor}
+    />
+  );
 
-      {/* Sélecteur de textes */}
+  return (
+    <BaseExercise
+      title="Reading Exercise"
+      level={level}
+      levelColor={levelColor}
+      progress={progress}
+      onBack={handleGoBack}
+      renderActions={renderActions}
+    >
       <TextSelector
         texts={readingData}
         selectedIndex={selectedExerciseIndex}
         onSelectText={handleTextChange}
         levelColor={levelColor}
-        scrollViewRef={textsScrollViewRef}
       />
-
-      {/* Barre de progression */}
-      <ProgressBar
-        progress={progress}
-        completedQuestions={currentQuestionIndex}
-        totalQuestions={currentExercise.questions?.length || 0}
+      <ReadingText
+        text={currentExercise.text}
+        expanded={textExpanded}
+        onToggleExpansion={toggleTextExpansion}
+        onWordPress={handleWordPress}
+        wordHasDefinition={wordHasDefinition}
+        highlightedWord={highlightedWord}
+        onCloseVocabularyPopup={closeVocabularyPopup}
         levelColor={levelColor}
       />
-
-      {/* Contenu principal */}
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Texte de lecture */}
-        <ReadingText
-          text={currentExercise.text}
-          expanded={textExpanded}
-          onToggleExpansion={toggleTextExpansion}
-          onWordPress={handleWordPress}
-          wordHasDefinition={wordHasDefinition}
-          highlightedWord={highlightedWord}
-          onCloseVocabularyPopup={closeVocabularyPopup}
-          levelColor={levelColor}
-        />
-
-        {/* Question actuelle */}
-        <Animated.View
-          style={[
-            styles.questionWrapper,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
-          {currentQuestion && (
-            <QuestionCard
-              question={currentQuestion}
-              selectedAnswer={selectedAnswer}
-              onSelectAnswer={setSelectedAnswer}
-              showFeedback={showFeedback}
-              isCorrect={isCorrect}
-              levelColor={levelColor}
-            />
-          )}
-        </Animated.View>
-
-        {/* Indicateurs de questions */}
-        <QuestionIndicators
-          totalQuestions={currentExercise.questions?.length || 0}
-          currentIndex={currentQuestionIndex}
-          completedQuestions={completedQuestions[selectedExerciseIndex] || []}
-          onSelectQuestion={setCurrentQuestionIndex}
-          levelColor={levelColor}
-        />
-      </ScrollView>
-
-      {/* Boutons d'action */}
-      <ActionButtons
-        showFeedback={showFeedback}
+      <QuestionCard
+        question={currentQuestion}
         selectedAnswer={selectedAnswer}
+        onSelectAnswer={setSelectedAnswer}
+        showFeedback={showFeedback}
         isCorrect={isCorrect}
-        attempts={attempts}
-        canGoPrevious={canGoToPrevious}
-        isLastQuestion={isLastQuestion}
-        onSubmit={checkAnswer}
-        onNext={handleNextQuestion} // Utiliser notre fonction personnalisée
-        onPrevious={goToPreviousQuestion}
-        onRetry={retryExercise}
         levelColor={levelColor}
       />
-    </SafeAreaView>
+    </BaseExercise>
   );
 };
 

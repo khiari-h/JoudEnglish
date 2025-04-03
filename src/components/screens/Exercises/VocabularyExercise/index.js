@@ -1,15 +1,13 @@
 // src/components/screens/Exercises/VocabularyExercise/index.js
 import React from "react";
-import { SafeAreaView, ScrollView } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import BaseExercise from "../../../common/BaseExercise";
+import { NavigationButton, IconButton } from '../../../common/Navigation';
+import { AnimatedFeedback, ExerciseFeedback } from '../../../common/Feedback';
 
 // Import des composants
-import VocabularyHeader from "./components/VocabularyHeader";
 import CategorySelector from "./components/CategorySelector";
 import WordCard from "./components/WordCard";
-import CardIndicators from "./components/CardIndicators";
 import NavigationButtons from "./components/NavigationButtons";
-import LearningTip from "./components/LearningTip";
 
 // Import du hook principal
 import { useVocabularyExercise } from "./hooks/useVocabularyExercise";
@@ -22,104 +20,68 @@ import styles from "./style";
  * Version simplifiée utilisant le hook useVocabularyExercise
  */
 const VocabularyExercise = ({ navigation }) => {
-  const route = useRoute();
-  const { level } = route.params || { level: "A1" };
-
-  // Utiliser le hook principal qui centralise toute la logique
   const {
     // État
     selectedCategoryIndex,
     currentWordIndex,
     showTranslation,
-    completedWords,
-    showTip,
     levelColor,
-    
+
     // Animations
     fadeAnim,
     slideAnim,
-    tipFadeAnim,
-    
+
     // Données
     vocabularyData,
-    currentCategory,
     currentWord,
-    totalWords,
-    
+    progress,
+
     // Actions
     toggleTranslation,
-    dismissTip,
     handleCategoryChange,
-    handleWordSelection,
     handleNext,
     handlePrevious,
-    isCurrentWordCompleted
-  } = useVocabularyExercise(level, navigation);
+    isCurrentWordCompleted,
+    handleGoBack,
+  } = useVocabularyExercise("A1", navigation);
+
+  const renderActions = () => (
+    <NavigationButtons
+      currentWordIndex={currentWordIndex}
+      totalWords={vocabularyData?.totalWords || 0}
+      handlePrevious={handlePrevious}
+      handleNext={handleNext}
+      levelColor={levelColor}
+    />
+  );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* En-tête */}
-      <VocabularyHeader
-        level={level}
-        levelColor={levelColor}
-        navigation={navigation}
-        title={`Vocabulary: ${currentCategory?.title || ""}`}
-      />
-
-      {/* Sélecteur de catégorie */}
+    <BaseExercise
+      title="Vocabulary Exercise"
+      level="A1"
+      levelColor={levelColor}
+      progress={progress}
+      onBack={handleGoBack}
+      renderActions={renderActions}
+    >
       <CategorySelector
         categories={vocabularyData?.categories || []}
         selectedCategoryIndex={selectedCategoryIndex}
         onSelectCategory={handleCategoryChange}
         levelColor={levelColor}
       />
-
-      {/* Contenu principal */}
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-      >
-        {/* Indicateurs de mots */}
-        <CardIndicators
-          totalWords={totalWords}
-          currentIndex={currentWordIndex}
-          completedWords={completedWords[selectedCategoryIndex] || []}
+      {currentWord && (
+        <WordCard
+          word={currentWord}
+          showTranslation={showTranslation}
+          onToggleTranslation={toggleTranslation}
+          isCompleted={isCurrentWordCompleted()}
+          fadeAnim={fadeAnim}
+          slideAnim={slideAnim}
           levelColor={levelColor}
-          onSelectWord={handleWordSelection}
         />
-
-        {/* Carte de vocabulaire */}
-        {currentWord && (
-          <WordCard
-            word={currentWord}
-            showTranslation={showTranslation}
-            onToggleTranslation={toggleTranslation}
-            isCompleted={isCurrentWordCompleted()}
-            fadeAnim={fadeAnim}
-            slideAnim={slideAnim}
-            levelColor={levelColor}
-          />
-        )}
-
-        {/* Conseil d'apprentissage */}
-        {showTip && (
-          <LearningTip
-            tipFadeAnim={tipFadeAnim}
-            dismissTip={dismissTip}
-            tip={vocabularyData?.tips?.[currentWordIndex % (vocabularyData?.tips?.length || 1)]}
-          />
-        )}
-      </ScrollView>
-
-      {/* Boutons de navigation */}
-      <NavigationButtons
-        currentWordIndex={currentWordIndex}
-        totalWords={totalWords}
-        handlePrevious={handlePrevious}
-        handleNext={handleNext}
-        levelColor={levelColor}
-      />
-    </SafeAreaView>
+      )}
+    </BaseExercise>
   );
 };
 

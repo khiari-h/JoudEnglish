@@ -1,48 +1,51 @@
-// components/common/ProgressBar/index.js
-import React from "react";
-import { View, Text } from "react-native";
-import styles from "./styles";
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 
-const ProgressBar = ({ 
-  progress, 
-  total, 
-  color, 
-  showText = true, 
-  textPosition = "right" 
-}) => {
-  const progressPercentage = (progress / total) * 100;
-  
+/**
+ * Composant de barre de progression générique
+ * 
+ * @param {Object} props - Les propriétés du composant
+ * @param {number} props.progress - Progression actuelle (entre 0 et 1)
+ * @param {string} props.levelColor - Couleur associée au niveau
+ */
+const ProgressBar = ({ progress, levelColor }) => {
   return (
     <View style={styles.container}>
-      {showText && textPosition === "top" && (
-        <Text style={styles.progressText}>
-          {progress}/{total}
-        </Text>
-      )}
-      <View style={styles.progressBar}>
+      <View style={[styles.bar, { backgroundColor: `${levelColor}30` }]}>
         <View
           style={[
-            styles.progressFill,
-            {
-              width: `${progressPercentage}%`,
-              backgroundColor: color,
-            },
+            styles.progress,
+            { width: `${Math.min(progress * 100, 100)}%`, backgroundColor: levelColor },
           ]}
         />
       </View>
-      {showText && textPosition === "right" && (
-        <Text style={styles.progressText}>
-          {progress}/{total}
-        </Text>
-      )}
-      {showText && textPosition === "percentage" && (
-        <Text style={styles.progressText}>
-          {progressPercentage.toFixed(0)}%
-        </Text>
-      )}
+      <Text style={styles.progressText}>{Math.round(progress * 100)}%</Text>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    marginVertical: 10,
+    paddingHorizontal: 20,
+  },
+  bar: {
+    height: 10,
+    borderRadius: 5,
+    overflow: 'hidden',
+    backgroundColor: '#e5e7eb',
+  },
+  progress: {
+    height: '100%',
+    borderRadius: 5,
+  },
+  progressText: {
+    marginTop: 5,
+    fontSize: 12,
+    color: '#475569',
+    textAlign: 'right',
+  },
+});
 
 export default ProgressBar;
 

@@ -9,8 +9,8 @@ import SpellingCorrectionPractice from "./screens/CorrectionPractice";
 import SpellingRulesPractice from "./screens/RulesPractice";
 
 // Composants pour usage externe potentiel
-import Header from "./components/Header";
-import ProgressBar from "./components/ProgressBar";
+import Header from "../../../common/Header";
+import ProgressBar from "../../../common/ProgressBar";
 import ExerciseCard from "./components/ExerciseCard";
 import ResultsScreen from "./components/ResultsScreen";
 import FeedbackDisplay from "./components/FeedbackDisplay";
@@ -21,6 +21,25 @@ import { EXERCISE_TYPES } from "../../../../constants/exercicesTypes";
 
 // Custom hook pour les exercices d'orthographe
 const useSpellingExercise = () => useExerciseType(EXERCISE_TYPES.SPELLING);
+
+// Composant principal pour les exercices d'orthographe
+const SpellingExercise = ({ navigation }) => {
+  // ...existing code...
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* En-tête */}
+      <Header
+        title="Spelling Exercise"
+        level={level}
+        levelColor={levelColor}
+        onBack={handleGoBack}
+      />
+      {/* Barre de progression */}
+      <ProgressBar progress={progress} levelColor={levelColor} />
+      {/* ...existing code... */}
+    </SafeAreaView>
+  );
+};
 
 // Export des écrans principaux
 export {
@@ -40,5 +59,5 @@ export {
   useSpellingExercise,
 };
 
-// Export par défaut pour l'écran principal de sélection (point d'entrée principal du module)
-export default SpellingSelectionScreen;
+// Export par défaut pour le composant principal des exercices d'orthographe
+export default SpellingExercise;
