@@ -4,7 +4,7 @@ import BaseExercise from "../../../common/BaseExercise";
 import BrowseMode from './components/BrowseMode';
 import ExerciseMode from './components/ExerciseMode';
 import ResultsMode from './components/ResultsMode';
-import useVocabularyExercise from './hooks/useVocabularyExercise';
+import useVocabularyExercise from './hooks/useVocabularyExercise'; // Corrected path
 
 const VocabularyExercise = ({ navigation }) => {
   const {

@@ -1,13 +1,13 @@
 import { StyleSheet } from 'react-native';
+import theme from '../../../../styles/theme';
 
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.colors.white,
   },
   content: {
-    padding: 16,
-    paddingBottom: 40,
+    padding: theme.spacing.md,
   },
   exerciseContainer: {
     flex: 1,
