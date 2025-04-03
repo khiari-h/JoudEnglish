@@ -2,11 +2,8 @@ import React from "react";
 import { View, Text, ScrollView, Animated } from "react-native";
 import styles from "./style";
 import Button from "../../../../../ui/Button";
+import { FullCorrectionView, IdentifyView, MultipleChoiceView } from "./views";
 
-// Import des sous-composants (à implémenter ultérieurement)
-import FullCorrectionView from "../FullCorrectionView";
-import IdentifyView from "../IdentifyView";
-import MultipleChoiceView from "../MultipleChoiceView";
 import FeedbackDisplay from "../FeedbackDisplay";
 import ProgressBar from "../ProgressBar";
 

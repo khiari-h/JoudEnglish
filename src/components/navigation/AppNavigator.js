@@ -1,151 +1,113 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
+
+// Import des écrans principaux
 import Dashboard from "../screens/dashboard";
 import LevelSelection from "../screens/LevelSelection";
 import ExerciseSelection from "../screens/ExerciceSelection";
-import VocabularyExercise from "../screens/Exercises/VocabularyExercise";
+
+// Import des exercices restructurés
 import GrammarExercise from "../screens/Exercises/GrammarExercise";
+import VocabularyExercise from "../screens/Exercises/VocabularyExercise";
 import ChatbotWriting from "../screens/Exercises/ChatbotWriting";
 import ErrorCorrectionExercise from "../screens/Exercises/ErrorCorrectionExercise";
 import PhrasesExpressions from "../screens/Exercises/PhrasesExpressions";
-import LevelAssessment from "../screens/Exercises/LevelAssessment";
 import ReadingExercise from "../screens/Exercises/ReadingExercise";
+import ListeningExercise from "../screens/Exercises/ListeningExercise";
+import SpellingExercise from "../screens/Exercises/SpellingExercise";
 import WordGamesExercise from "../screens/Exercises/WordGamesExercise";
-
-// Importation des nouveaux composants d'orthographe refactorisés
-import {
-  SpellingSelectionScreen,
-  SpellingRulesPractice,
-  SpellingCorrectionPractice,
-} from "../screens/Exercises/Spelling";
+import LevelAssessment from "../screens/Exercises/LevelAssessment";
 
 const Stack = createStackNavigator();
 
-// Nous supprimons la fonction getLevelColor car elle est maintenant importée
-// depuis utils/levelUtils.js dans les composants concernés
-
 const AppNavigator = () => {
-  const userProfile = {
-    name: "Hamdane Khiari",
-    streak: 7,
-  };
-
   return (
     <Stack.Navigator
       initialRouteName="Dashboard"
       screenOptions={{
         headerStyle: {
           backgroundColor: "#FFFFFF",
-          elevation: 0, // Pour Android
-          shadowOpacity: 0, // Pour iOS
+          elevation: 0,
+          shadowOpacity: 0,
         },
-        headerTintColor: "#5E60CE", // Couleur de la flèche et du texte de retour
+        headerTintColor: "#5E60CE",
         headerTitleStyle: {
           fontWeight: "bold",
           fontSize: 20,
         },
-        headerBackTitleVisible: false, // Cache le texte "Retour"
+        headerBackTitleVisible: false,
         cardStyle: {
           backgroundColor: "#F4F4F6",
         },
       }}
     >
+      {/* Écrans principaux */}
       <Stack.Screen
         name="Dashboard"
         component={Dashboard}
-        initialParams={userProfile}
         options={{ headerShown: false }}
       />
       <Stack.Screen
         name="LevelSelection"
         component={LevelSelection}
-        options={{
-          title: "Language Levels",
-        }}
+        options={{ title: "Language Levels" }}
       />
       <Stack.Screen
         name="ExerciseSelection"
         component={ExerciseSelection}
-        options={{
-          title: "Exercise Selection",
-        }}
+        options={{ title: "Exercise Selection" }}
       />
-      <Stack.Screen
-        name="VocabularyExercise"
-        component={VocabularyExercise}
-        options={{
-          title: "Vocabulary Exercise",
-        }}
-      />
+
+      {/* Exercices de langue */}
       <Stack.Screen
         name="GrammarExercise"
         component={GrammarExercise}
-        options={{
-          title: "Grammar Exercise",
-        }}
+        options={{ title: "Grammar Exercise" }}
       />
       <Stack.Screen
-        name="ChatbotWriting"
+        name="Vocabulary"
+        component={VocabularyExercise}
+        options={{ title: "Vocabulary" }}
+      />
+      <Stack.Screen
+        name="Chatbot"
         component={ChatbotWriting}
-        options={{
-          title: "Chatbot Writing",
-        }}
+        options={{ title: "Conversation Practice" }}
       />
       <Stack.Screen
-        name="ErrorCorrectionExercise"
+        name="ErrorCorrection"
         component={ErrorCorrectionExercise}
-        options={{
-          title: "Error Correction",
-        }}
+        options={{ title: "Error Correction" }}
       />
       <Stack.Screen
-        name="PhrasesExpressions"
+        name="Phrases"
         component={PhrasesExpressions}
-        options={{
-          title: "Phrases & Expressions",
-        }}
+        options={{ title: "Phrases & Expressions" }}
       />
       <Stack.Screen
-        name="Evaluation"
-        component={LevelAssessment}
-        options={{
-          title: "Level Assessment",
-        }}
-      />
-      <Stack.Screen
-        name="ReadingExercise"
+        name="Reading"
         component={ReadingExercise}
-        options={{
-          title: "Reading Exercise",
-        }}
+        options={{ title: "Reading" }}
       />
       <Stack.Screen
-        name="SpellingPractice"
-        component={SpellingSelectionScreen}
-        options={{
-          title: "Spelling Practice",
-        }}
+        name="Listening"
+        component={ListeningExercise}
+        options={{ title: "Listening" }}
       />
       <Stack.Screen
-        name="SpellingRulesPractice"
-        component={SpellingRulesPractice}
-        options={{
-          title: "Spelling Rules",
-        }}
+        name="Spelling"
+        component={SpellingExercise}
+        options={{ title: "Spelling" }}
       />
       <Stack.Screen
-        name="SpellingCorrectionPractice"
-        component={SpellingCorrectionPractice}
-        options={{
-          title: "Spelling Correction",
-        }}
-      />
-      <Stack.Screen
-        name="WordGamesExercise"
+        name="WordGames"
         component={WordGamesExercise}
-        options={{
-          title: "Word Games",
-        }}
+        options={{ title: "Word Games" }}
+      />
+      <Stack.Screen
+        name="Assessment"
+        component={LevelAssessment}
+        options={{ title: "Level Assessment" }}
       />
     </Stack.Navigator>
   );

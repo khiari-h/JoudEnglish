@@ -1,42 +1,39 @@
 import React from "react";
 import BaseExercise from "../../../common/BaseExercise";
-import { NavigationButton, IconButton } from '../../../common/Navigation';
-import { AnimatedFeedback, ExerciseFeedback } from '../../../common/Feedback';
+import BrowseMode from './components/BrowseMode';
+import ExerciseMode from './components/ExerciseMode';
+import ResultsMode from './components/ResultsMode';
+import useSpellingExercise from './hooks/useSpellingExercise';
 
 const SpellingExercise = ({ navigation }) => {
   const {
-    currentIndex,
+    mode,
     currentExercise,
-    showFeedback,
-    isCorrect,
     progress,
-    levelColor,
-    // ...existing state...
-  } = useExerciseState({
-    // ...existing configuration...
-  });
+    handleSpelling,
+    levelColor
+  } = useSpellingExercise({ level: "A1", navigation });
 
-  // ...existing hooks and effects...
-
-  const renderActions = () => (
-    <NavigationButtons
-      onNext={handleNext}
-      onPrevious={handlePrevious}
-      isLastExercise={isLastExercise}
-      levelColor={levelColor}
-    />
-  );
+  const renderContent = () => {
+    switch(mode) {
+      case 'browse': return <BrowseMode />;
+      case 'exercise': return <ExerciseMode />;
+      case 'results': return <ResultsMode />;
+      default: return null;
+    }
+  };
 
   return (
     <BaseExercise
       title="Spelling Exercise"
-      level={level}
+      level="A1"
       levelColor={levelColor}
       progress={progress}
       onBack={handleGoBack}
-      renderActions={renderActions}
     >
-      <ExerciseContent />
+      {renderContent()}
     </BaseExercise>
   );
 };
+
+export default SpellingExercise;

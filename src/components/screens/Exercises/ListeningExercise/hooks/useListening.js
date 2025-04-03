@@ -1,15 +1,15 @@
 import { useExerciseState, useTaskProgress } from '../../../../../hooks/common';
 
-const useWordGames = ({ level, navigation }) => {
+const useListening = ({ level, navigation }) => {
   const exerciseState = useExerciseState({
-    type: 'word_games',
+    type: 'listening',
     level,
     navigation
   });
 
   const taskProgress = useTaskProgress({
-    tasks: gameData.exercises,
-    exerciseType: 'word_games',
+    tasks: listeningData.exercises,
+    exerciseType: 'listening',
     level
   });
 
@@ -20,4 +20,4 @@ const useWordGames = ({ level, navigation }) => {
   };
 };
 
-export default useWordGames;
+export default useListening;
